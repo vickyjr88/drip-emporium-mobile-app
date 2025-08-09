@@ -1,0 +1,852 @@
+[
+  {
+    "product": {
+      "name": "Nike Air Max 90",
+      "tags": ["retro", "colorful", "Air Max Day", "Nike"],
+      "description": "A classic reborn with a modern twist, available in over 10 colorways.",
+      "price": "KES 3,300"
+    },
+    "twitter_context": "Air Max 90 is available in more than 10 colors.",
+    "expected_output": "Step into the legend. Nike Air Max 90 now in over 10 vibrant colorways. Retro vibes meet modern comfort. KES 3,300. #AirMax90 #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Boss Casual Shoes",
+      "tags": ["casual", "sophisticated", "everyday look"],
+      "description": "Boost your everyday look with Boss casual shoes, where style meets sophistication.",
+      "price": "KES 3,900"
+    },
+    "twitter_context": "Boost your everyday look with Boss casual shoes, where style meets sophistication.",
+    "expected_output": "Elevate your everyday style with Boss Casual Shoes. Sophistication meets comfort. KES 3,900. #BossCasual #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "G Ten Leather Boots",
+      "tags": ["leather", "durable", "adventure"],
+      "description": "Built for the journey! Our G Ten Leather Boots combine premium leather with a durable rubber sole, ready for any adventure.",
+      "price": "KES 4,500"
+    },
+    "twitter_context": "Built for the journey! Our G Ten Leather Boots combine premium leather with a durable rubber sole, ready for any adventure.",
+    "expected_output": "Conquer every path with G Ten Leather Boots. Premium leather meets rugged durability. KES 4,500. #GTenBoots #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Calvin Klein Shoes",
+      "tags": ["minimalist", "elegant", "timeless"],
+      "description": "Step into sophistication with Calvin Klein shoes, where minimalism meets modern elegance.",
+      "price": "KES 5,200"
+    },
+    "twitter_context": "Step into sophistication with Calvin Klein shoes, where minimalism meets modern elegance.",
+    "expected_output": "Embrace timeless elegance with Calvin Klein Shoes. Minimalist design for the modern you. KES 5,200. #CalvinKlein #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Timberland Casuals in Navy",
+      "tags": ["navy", "toughness", "everyday cool"],
+      "description": "Command the streets in navy precision. Timberland Casuals in Navy, where timeless toughness meets everyday cool.",
+      "price": "KES 4,800"
+    },
+    "twitter_context": "Command the streets in navy precision. Timberland Casuals in Navy, where timeless toughness meets everyday cool.",
+    "expected_output": "Own the streets with Timberland Casuals in Navy. Timeless toughness for your daily stride. KES 4,800. #TimberlandNavy #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Adidas Yeezy Boost 350",
+      "tags": ["streetwear", "hype", "modern"],
+      "description": "Level up your sneaker game with Yeezy Boost 350. Ultimate comfort meets iconic style.",
+      "price": "KES 3,500"
+    },
+    "twitter_context": "Yeezy Boost 350 dropping in fresh colorways. Don’t sleep on this hype!",
+    "expected_output": "Get the drip with Adidas Yeezy Boost 350. Iconic style, unmatched comfort. KES 3,500. #YeezyBoost #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Vans Old Skool Black",
+      "tags": ["classic", "skate", "versatile"],
+      "description": "Timeless vibes with Vans Old Skool Black. Perfect for any fit, any day.",
+      "price": "KES 2,800"
+    },
+    "twitter_context": "Vans Old Skool Black never goes out of style. Cop yours now!",
+    "expected_output": "Rock the classic with Vans Old Skool Black. Timeless style for every vibe. KES 2,800. #VansOldSkool #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Air Jordan 4 Retro",
+      "tags": ["retro", "streetwear", "iconic"],
+      "description": "Air Jordan 4 Retro brings the heat with bold design and premium comfort.",
+      "price": "KES 2,900"
+    },
+    "twitter_context": "Air Jordan 4 Retro in stock! Grab yours before they’re gone.",
+    "expected_output": "Steal the show with Air Jordan 4 Retro. Bold design, epic comfort. KES 2,900. #AirJordan4 #DripEmporium"[](https://x.com/Vickyjr/status/1783441261971624200)
+  },
+  {
+    "product": {
+      "name": "Puma Suede Classic",
+      "tags": ["suede", "retro", "casual"],
+      "description": "Puma Suede Classic delivers retro flair with a smooth suede finish.",
+      "price": "KES 3,000"
+    },
+    "twitter_context": "Puma Suede Classic vibes. Smooth suede, retro cool.",
+    "expected_output": "Step back in style with Puma Suede Classic. Retro suede swagger. KES 3,000. #PumaSuede #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "New Balance 574 Grey",
+      "tags": ["athleisure", "comfort", "neutral"],
+      "description": "New Balance 574 Grey: Sleek, comfy, and ready for all-day wear.",
+      "price": "KES 3,200"
+    },
+    "twitter_context": "New Balance 574 Grey is your go-to for comfort and style.",
+    "expected_output": "Keep it fresh with New Balance 574 Grey. All-day comfort, sleek style. KES 3,200. #NewBalance574 #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Reebok Classic Leather",
+      "tags": ["classic", "clean", "versatile"],
+      "description": "Reebok Classic Leather: Clean lines, timeless style, endless possibilities.",
+      "price": "KES 2,700"
+    },
+    "twitter_context": "Reebok Classic Leather keeps it clean and timeless.",
+    "expected_output": "Stay sharp with Reebok Classic Leather. Timeless style, versatile fit. KES 2,700. #ReebokClassic #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Asics Gel-Lyte III",
+      "tags": ["retro", "athletic", "colorful"],
+      "description": "Asics Gel-Lyte III brings vibrant colors and superior cushioning.",
+      "price": "KES 3,600"
+    },
+    "twitter_context": "Asics Gel-Lyte III popping with color and comfort!",
+    "expected_output": "Turn heads with Asics Gel-Lyte III. Vibrant hues, epic cushioning. KES 3,600. #AsicsGelLyte #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Converse Chuck Taylor All Star",
+      "tags": ["classic", "canvas", "streetwear"],
+      "description": "Converse Chuck Taylor All Star: The OG sneaker for every vibe.",
+      "price": "KES 2,500"
+    },
+    "twitter_context": "Chuck Taylor All Star. The classic that never fades.",
+    "expected_output": "Rock the OG with Converse Chuck Taylor All Star. Timeless vibe. KES 2,500. #ConverseChuck #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Dr. Martens 1460 Boots",
+      "tags": ["leather", "punk", "durable"],
+      "description": "Dr. Martens 1460 Boots: Bold leather, rebellious spirit, built to last.",
+      "price": "KES 5,000"
+    },
+    "twitter_context": "Dr. Martens 1460 Boots for the bold and rebellious.",
+    "expected_output": "Unleash your edge with Dr. Martens 1460 Boots. Bold and built to last. KES 5,000. #DrMartens #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Under Armour HOVR Phantom",
+      "tags": ["athletic", "tech", "performance"],
+      "description": "Under Armour HOVR Phantom: High-tech cushioning for peak performance.",
+      "price": "KES 4,200"
+    },
+    "twitter_context": "HOVR Phantom by Under Armour. Tech-driven performance!",
+    "expected_output": "Push limits with Under Armour HOVR Phantom. Next-level cushioning. KES 4,200. #HOVRPhantom #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Clarks Desert Boots",
+      "tags": ["suede", "casual", "timeless"],
+      "description": "Clarks Desert Boots: Suede elegance for every occasion.",
+      "price": "KES 4,000"
+    },
+    "twitter_context": "Clarks Desert Boots bring suede style to any look.",
+    "expected_output": "Step up with Clarks Desert Boots. Timeless suede swagger. KES 4,000. #ClarksDesert #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Nike Air Force 1 Low",
+      "tags": ["streetwear", "classic", "clean"],
+      "description": "Nike Air Force 1 Low: Crisp, clean, and always iconic.",
+      "price": "KES 1,900"
+    },
+    "twitter_context": "Air Force 1 Low in stock! Clean and iconic.",
+    "expected_output": "Keep it crisp with Nike Air Force 1 Low. Iconic style, unbeatable price. KES 1,900. #AirForce1 #DripEmporium"[](https://x.com/Vickyjr/status/1783441261971624200)
+  },
+  {
+    "product": {
+      "name": "Salomon XT-6 Sneakers",
+      "tags": ["trail", "tech", "trendy"],
+      "description": "Salomon XT-6: Trail-ready tech meets urban style.",
+      "price": "KES 4,300"
+    },
+    "twitter_context": "Salomon XT-6 blends trail tech with city vibes.",
+    "expected_output": "Hit the streets or trails with Salomon XT-6. Tech meets trend. KES 4,300. #SalomonXT6 #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Crocs Classic Clog",
+      "tags": ["comfort", "casual", "fun"],
+      "description": "Crocs Classic Clog: Ultimate comfort with a playful vibe.",
+      "price": "KES 2,200"
+    },
+    "twitter_context": "Crocs Classic Clog. Comfort that pops!",
+    "expected_output": "Slide into fun with Crocs Classic Clog. All-day comfort. KES 2,200. #CrocsClassic #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Balenciaga Triple S",
+      "tags": ["luxury", "chunky", "fashion"],
+      "description": "Balenciaga Triple S: Bold, chunky, and high-fashion.",
+      "price": "KES 6,500"
+    },
+    "twitter_context": "Balenciaga Triple S. Make a statement.",
+    "expected_output": "Steal the spotlight with Balenciaga Triple S. Chunky luxe vibes. KES 6,500. #BalenciagaTripleS #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Hoka One One Carbon X",
+      "tags": ["running", "lightweight", "performance"],
+      "description": "Hoka One One Carbon X: Lightweight speed for runners.",
+      "price": "KES 4,700"
+    },
+    "twitter_context": "Hoka Carbon X for runners who chase speed.",
+    "expected_output": "Fly fast with Hoka One One Carbon X. Lightweight performance. KES 4,700. #HokaCarbonX #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Gucci Leather Sneakers",
+      "tags": ["luxury", "leather", "elegant"],
+      "description": "Gucci Leather Sneakers: Premium craftsmanship meets modern flair.",
+      "price": "KES 6,800"
+    },
+    "twitter_context": "Gucci Leather Sneakers. Luxe style, every step.",
+    "expected_output": "Walk in luxury with Gucci Leather Sneakers. Timeless elegance. KES 6,800. #GucciSneakers #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Merrell Moab 2 Hiking Boots",
+      "tags": ["hiking", "durable", "outdoor"],
+      "description": "Merrell Moab 2: Rugged boots for epic outdoor adventures.",
+      "price": "KES 5,300"
+    },
+    "twitter_context": "Merrell Moab 2 Hiking Boots. Built for the wild.",
+    "expected_output": "Trek boldly with Merrell Moab 2 Hiking Boots. Rugged and ready. KES 5,300. #MerrellMoab #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Skechers Go Walk 6",
+      "tags": ["comfort", "walking", "lightweight"],
+      "description": "Skechers Go Walk 6: Featherlight comfort for all-day walking.",
+      "price": "KES 3,400"
+    },
+    "twitter_context": "Skechers Go Walk 6. Walk light, feel great.",
+    "expected_output": "Glide through your day with Skechers Go Walk 6. Ultimate comfort. KES 3,400. #SkechersGoWalk #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Fila Disruptor II",
+      "tags": ["chunky", "retro", "streetwear"],
+      "description": "Fila Disruptor II: Chunky retro vibes for bold looks.",
+      "price": "KES 3,100"
+    },
+    "twitter_context": "Fila Disruptor II. Bold, chunky, retro heat.",
+    "expected_output": "Make waves with Fila Disruptor II. Retro chunky style. KES 3,100. #FilaDisruptor #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Lacoste Carnaby Evo",
+      "tags": ["clean", "casual", "sporty"],
+      "description": "Lacoste Carnaby Evo: Clean, sporty style for every day.",
+      "price": "KES 3,800"
+    },
+    "twitter_context": "Lacoste Carnaby Evo. Sporty, clean, and fresh.",
+    "expected_output": "Stay fresh with Lacoste Carnaby Evo. Clean sporty vibes. KES 3,800. #LacosteCarnaby #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Birkenstock Arizona Sandals",
+      "tags": ["sandals", "comfort", "minimal"],
+      "description": "Birkenstock Arizona: Timeless sandals for ultimate comfort.",
+      "price": "KES 3,500"
+    },
+    "twitter_context": "Birkenstock Arizona Sandals. Comfort that lasts.",
+    "expected_output": "Chill in style with Birkenstock Arizona Sandals. Pure comfort. KES 3,500. #Birkenstock #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Supra Skytop Sneakers",
+      "tags": ["skate", "streetwear", "bold"],
+      "description": "Supra Skytop: High-top swagger for street-ready looks.",
+      "price": "KES 3,300"
+    },
+    "twitter_context": "Supra Skytop. High-top heat for the streets.",
+    "expected_output": "Own the block with Supra Skytop Sneakers. Bold street style. KES 3,300. #SupraSkytop #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Mizuno Wave Rider",
+      "tags": ["running", "tech", "comfort"],
+      "description": "Mizuno Wave Rider: Smooth rides with cutting-edge tech.",
+      "price": "KES 4,100"
+    },
+    "twitter_context": "Mizuno Wave Rider. Run smooth, run strong.",
+    "expected_output": "Hit your stride with Mizuno Wave Rider. Tech-driven comfort. KES 4,100. #MizunoWave #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Aldo Leather Loafers",
+      "tags": ["leather", "formal", "sleek"],
+      "description": "Aldo Leather Loafers: Sleek style for sharp occasions.",
+      "price": "KES 4,600"
+    },
+    "twitter_context": "Aldo Leather Loafers. Sharp, sleek, sophisticated.",
+    "expected_output": "Step up your game with Aldo Leather Loafers. Sleek and sharp. KES 4,600. #AldoLoafers #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "On Running Cloud X",
+      "tags": ["running", "lightweight", "versatile"],
+      "description": "On Running Cloud X: Lightweight versatility for runners.",
+      "price": "KES 4,900"
+    },
+    "twitter_context": "On Cloud X. Light, fast, versatile.",
+    "expected_output": "Run free with On Running Cloud X. Lightweight and versatile. KES 4,900. #OnCloudX #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "TOMS Alpargata Espadrilles",
+      "tags": ["casual", "eco-friendly", "lightweight"],
+      "description": "TOMS Alpargata: Casual, eco-friendly style with a purpose.",
+      "price": "KES 2,600"
+    },
+    "twitter_context": "TOMS Alpargata. Style with a purpose.",
+    "expected_output": "Walk with purpose in TOMS Alpargata Espadrilles. Eco-friendly vibe. KES 2,600. #TOMSAlpargata #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Saucony Jazz Original",
+      "tags": ["retro", "athleisure", "colorful"],
+      "description": "Saucony Jazz Original: Retro colors, modern comfort.",
+      "price": "KES 3,200"
+    },
+    "twitter_context": "Saucony Jazz Original. Retro vibes, fresh comfort.",
+    "expected_output": "Pop off with Saucony Jazz Original. Retro style, modern ease. KES 3,200. #SauconyJazz #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Keen Targhee III Hiking Shoes",
+      "tags": ["hiking", "rugged", "outdoor"],
+      "description": "Keen Targhee III: Rugged shoes for tough trails.",
+      "price": "KES 5,100"
+    },
+    "twitter_context": "Keen Targhee III. Built for rugged adventures.",
+    "expected_output": "Tackle trails with Keen Targhee III Hiking Shoes. Rugged reliability. KES 5,100. #KeenTarghee #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Teva Hurricane XLT2 Sandals",
+      "tags": ["sandals", "adventure", "durable"],
+      "description": "Teva Hurricane XLT2: Durable sandals for outdoor thrills.",
+      "price": "KES 3,000"
+    },
+    "twitter_context": "Teva Hurricane XLT2 Sandals. Ready for adventure.",
+    "expected_output": "Explore freely with Teva Hurricane XLT2 Sandals. Built for adventure. KES 3,000. #TevaHurricane #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Prada Cloudbust Thunder",
+      "tags": ["luxury", "futuristic", "fashion"],
+      "description": "Prada Cloudbust Thunder: Futuristic luxury for bold fashion.",
+      "price": "KES 6,900"
+    },
+    "twitter_context": "Prada Cloudbust Thunder. Next-level luxury.",
+    "expected_output": "Step into the future with Prada Cloudbust Thunder. Bold luxe vibes. KES 6,900. #PradaCloudbust #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Altra Lone Peak 5",
+      "tags": ["trail", "running", "comfort"],
+      "description": "Altra Lone Peak 5: Trail-ready comfort for runners.",
+      "price": "KES 4,400"
+    },
+    "twitter_context": "Altra Lone Peak 5. Conquer trails with ease.",
+    "expected_output": "Run wild with Altra Lone Peak 5. Trail-ready comfort. KES 4,400. #AltraLonePeak #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Ecco Soft 7 Sneakers",
+      "tags": ["leather", "casual", "comfort"],
+      "description": "Ecco Soft 7: Premium leather sneakers for all-day comfort.",
+      "price": "KES 4,200"
+    },
+    "twitter_context": "Ecco Soft 7 Sneakers. Leather comfort, daily style.",
+    "expected_output": "Stay comfy with Ecco Soft 7 Sneakers. Premium leather style. KES 4,200. #EccoSoft7 #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Brooks Adrenaline GTS 22",
+      "tags": ["running", "support", "performance"],
+      "description": "Brooks Adrenaline GTS 22: Supportive comfort for runners.",
+      "price": "KES 4,800"
+    },
+    "twitter_context": "Brooks Adrenaline GTS 22. Run with support.",
+    "expected_output": "Power your run with Brooks Adrenaline GTS 22. Supportive comfort. KES 4,800. #BrooksAdrenaline #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Cole Haan Grand Crosscourt",
+      "tags": ["sleek", "casual", "modern"],
+      "description": "Cole Haan Grand Crosscourt: Sleek sneakers for modern style.",
+      "price": "KES 4,500"
+    },
+    "twitter_context": "Cole Haan Grand Crosscourt. Sleek and modern.",
+    "expected_output": "Step sharp with Cole Haan Grand Crosscourt. Modern sleek style. KES 4,500. #ColeHaan #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "UGG Classic Ultra Mini",
+      "tags": ["cozy", "winter", "trendy"],
+      "description": "UGG Classic Ultra Mini: Cozy warmth meets trendy style.",
+      "price": "KES 5,500"
+    },
+    "twitter_context": "UGG Classic Ultra Mini. Cozy vibes, trendy look.",
+    "expected_output": "Stay warm with UGG Classic Ultra Mini. Cozy trendy style. KES 5,500. #UGGClassic #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Vionic Tide II Sandals",
+      "tags": ["sandals", "comfort", "orthopedic"],
+      "description": "Vionic Tide II: Orthopedic comfort for carefree steps.",
+      "price": "KES 3,200"
+    },
+    "twitter_context": "Vionic Tide II Sandals. Comfort that supports.",
+    "expected_output": "Walk easy with Vionic Tide II Sandals. Orthopedic comfort. KES 3,200. #VionicTide #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Diadora Heritage Trident",
+      "tags": ["retro", "suede", "streetwear"],
+      "description": "Diadora Heritage Trident: Retro suede style for the streets.",
+      "price": "KES 3,600"
+    },
+    "twitter_context": "Diadora Heritage Trident. Retro suede swagger.",
+    "expected_output": "Own the vibe with Diadora Heritage Trident. Retro suede style. KES 3,600. #DiadoraHeritage #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Arc’teryx Norvan LD 3",
+      "tags": ["trail", "running", "durable"],
+      "description": "Arc’teryx Norvan LD 3: Durable trail runners for epic runs.",
+      "price": "KES 5,200"
+    },
+    "twitter_context": "Arc’teryx Norvan LD 3. Built for epic trails.",
+    "expected_output": "Conquer trails with Arc’teryx Norvan LD 3. Durable performance. KES 5,200. #ArcteryxNorvan #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Kenneth Cole Reaction",
+      "tags": ["casual", "sleek", "modern"],
+      "description": "Kenneth Cole Reaction: Sleek casuals for modern moves.",
+      "price": "KES 3,900"
+    },
+    "twitter_context": "Kenneth Cole Reaction. Sleek style, modern vibes.",
+    "expected_output": "Move sharp with Kenneth Cole Reaction. Sleek modern style. KES 3,900. #KennethCole #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "North Face Hedgehog Fastpack",
+      "tags": ["hiking", "lightweight", "outdoor"],
+      "description": "North Face Hedgehog Fastpack: Lightweight hiking shoes for speed.",
+      "price": "KES 4,700"
+    },
+    "twitter_context": "North Face Hedgehog Fastpack. Hike light, hike fast.",
+    "expected_output": "Speed through trails with North Face Hedgehog Fastpack. Lightweight power. KES 4,700. #NorthFaceHedgehog #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Zara Leather High-Tops",
+      "tags": ["leather", "streetwear", "trendy"],
+      "description Jolie High-Top Sneakers: Premium leather for urban swagger.",
+      "price": "KES 3,700"
+    },
+    "twitter_context": "Jolie High-Tops. Leather style for the streets.",
+    "expected_output": "Strut with Jolie High-Top Sneakers. Urban leather swagger. KES 3,700. #JolieHighTops #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Adidas Ultraboost 22",
+      "tags": ["running", "comfort", "tech"],
+      "description": "Adidas Ultraboost 22: Next-level comfort for every run.",
+      "price": "KES 4,600"
+    },
+    "twitter_context": "Adidas Ultraboost 22. Run with ultimate comfort.",
+    "expected_output": "Crush your run with Adidas Ultraboost 22. Supreme comfort. KES 4,600. #Ultraboost22 #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Hunter Original Rain Boots",
+      "tags": ["waterproof", "durable", "stylish"],
+      "description": "Hunter Original Rain Boots: Stylish protection for rainy days.",
+      "price": "KES 5,400"
+    },
+    "twitter_context": "Hunter Rain Boots. Stay dry, look fly.",
+    "expected_output": "Splash in style with Hunter Original Rain Boots. Waterproof chic. KES 5,400. #HunterBoots #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Reiss Suede Loafers",
+      "tags": ["suede", "formal", "elegant"],
+      "description": "Reiss Suede Loafers: Elegant suede for refined looks.",
+      "price": "KES 4,300"
+    },
+    "twitter_context": "Reiss Suede Loafers. Refined elegance.",
+    "expected_output": "Class up with Reiss Suede Loafers. Elegant suede style. KES 4,300. #ReissLoafers #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Nike React Infinity Run",
+      "tags": ["running", "cushioning", "performance"],
+      "description": "Nike React Infinity Run: Plush cushioning for smooth runs.",
+      "price": "KES 4,200"
+    },
+    "twitter_context": "Nike React Infinity Run. Smooth, cushioned rides.",
+    "expected_output": "Run smooth with Nike React Infinity Run. Plush comfort. KES 4,200. #NikeReact #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Vans Checkerboard Slip-On",
+      "tags": ["skate", "casual", "iconic"],
+      "description": "Vans Checkerboard Slip-On: Iconic style with a bold print.",
+      "price": "KES 2,400"
+    },
+    "twitter_context": "Vans Checkerboard Slip-On. Bold and iconic.",
+    "expected_output": "Slide into style with Vans Checkerboard Slip-On. Bold iconic vibes. KES 2,400. #VansCheckerboard #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Columbia Newton Ridge Boots",
+      "tags": ["hiking", "waterproof", "rugged"],
+      "description": "Columbia Newton Ridge: Waterproof boots for tough hikes.",
+      "price": "KES 5,000"
+    },
+    "twitter_context": "Columbia Newton Ridge Boots. Hike tough, stay dry.",
+    "expected_output": "Trek strong with Columbia Newton Ridge Boots. Waterproof ruggedness. KES 5,000. #ColumbiaNewton #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Steve Madden Cliff Sneakers",
+      "tags": ["trendy", "casual", "fashion"],
+      "description": "Steve Madden Cliff: Trendy sneakers for bold fashion.",
+      "price": "KES 3,500"
+    },
+    "twitter_context": "Steve Madden Cliff Sneakers. Trendy and bold.",
+    "expected_output": "Make a statement with Steve Madden Cliff Sneakers. Trendy flair. KES 3,500. #SteveMaddenCliff #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Chaco Z/Cloud Sandals",
+      "tags": ["sandals", "adventure", "comfort"],
+      "description": "Chaco Z/Cloud: Adventure-ready sandals with plush comfort.",
+      "price": "KES 3,300"
+    },
+    "twitter_context": "Chaco Z/Cloud Sandals. Adventure with comfort.",
+    "expected_output": "Roam free with Chaco Z/Cloud Sandals. Plush adventure-ready. KES 3,300. #ChacoZCloud #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Moncler Trailgrip Sneakers",
+      "tags": ["luxury", "outdoor", "fashion"],
+      "description": "Moncler Trailgrip: Luxury sneakers for outdoor style.",
+      "price": "KES 6,700"
+    },
+    "twitter_context": "Moncler Trailgrip Sneakers. Luxe outdoor vibes.",
+    "expected_output": "Explore in luxe with Moncler Trailgrip Sneakers. Outdoor elegance. KES 6,700. #MonclerTrailgrip #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Puma RS-X3 Puzzle",
+      "tags": ["retro", "colorful", "streetwear"],
+      "description": "Puma RS-X3 Puzzle: Bold colors, retro street style.",
+      "price": "KES 3,400"
+    },
+    "twitter_context": "Puma RS-X3 Puzzle. Retro colors, bold vibes.",
+    "expected_output": "Pop off with Puma RS-X3 Puzzle. Retro colorful style. KES 3,400. #PumaRSX3 #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Allbirds Tree Runners",
+      "tags": ["eco-friendly", "lightweight", "casual"],
+      "description": "Allbirds Tree Runners: Sustainable comfort for daily wear.",
+      "price": "KES 3,600"
+    },
+    "twitter_context": "Allbirds Tree Runners. Sustainable, comfy style.",
+    "expected_output": "Step green with Allbirds Tree Runners. Eco-friendly comfort. KES 3,600. #AllbirdsTree #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Loro Piana Summer Walk",
+      "tags": ["luxury", "suede", "elegant"],
+      "description": "Loro Piana Summer Walk: Suede luxury for refined steps.",
+      "price": "KES 6,500"
+    },
+    "twitter_context": "Loro Piana Summer Walk. Suede luxe elegance.",
+    "expected_output": "Walk refined with Loro Piana Summer Walk. Suede luxury. KES 6,500. #LoroPiana #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "New Balance Fresh Foam",
+      "tags": ["running", "cushioning", "performance"],
+      "description": "New Balance Fresh Foam: Plush cushioning for epic runs.",
+      "price": "KES 4,400"
+    },
+    "twitter_context": "New Balance Fresh Foam. Cushioned runs, max comfort.",
+    "expected_output": "Run plush with New Balance Fresh Foam. Epic cushioning. KES 4,400. #NewBalanceFreshFoam #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Ecco Biom 2.0 Sneakers",
+      "tags": ["athleisure", "comfort", "modern"],
+      "description": "Ecco Biom 2.0: Modern comfort for active lifestyles.",
+      "price": "KES 4,100"
+    },
+    "twitter_context": "Ecco Biom 2.0 Sneakers. Modern comfort, active vibes.",
+    "expected_output": "Move free with Ecco Biom 2.0 Sneakers. Modern comfort. KES 4,100. #EccoBiom #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Superga 2750 Cotu",
+      "tags": ["classic", "canvas", "casual"],
+      "description": "Superga 2750 Cotu: Classic canvas sneakers for every day.",
+      "price": "KES 2,800"
+    },
+    "twitter_context": "Superga 2750 Cotu. Classic canvas, timeless style.",
+    "expected_output": "Keep it classic with Superga 2750 Cotu. Timeless canvas vibe. KES 2,800. #Superga2750 #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Arc’teryx Aerios FL GTX",
+      "tags": ["hiking", "waterproof", "lightweight"],
+      "description": "Arc’teryx Aerios FL GTX: Lightweight, waterproof hiking shoes.",
+      "price": "KES 5,300"
+    },
+    "twitter_context": "Arc’teryx Aerios FL GTX. Hike light, stay dry.",
+    "expected_output": "Trek light with Arc’teryx Aerios FL GTX. Waterproof hiking power. KES 5,300. #ArcteryxAerios #DripEmporium"
+  },
+  {
+    "product": {
+      "name": " Veja V-10 Sneakers",
+      "tags": ["sustainable", "casual", "trendy"],
+      "description": "Veja V-10: Sustainable sneakers with trendy style.",
+      "price": "KES 3,900"
+    },
+    "twitter_context": "Veja V-10 Sneakers. Sustainable style, trendy vibes.",
+    "expected_output": "Step green with Veja V-10 Sneakers. Sustainable trendiness. KES 3,900. #VejaV10 #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Onitsuka Tiger Mexico 66",
+      "tags": ["retro", "sleek", "streetwear"],
+      "description": "Onitsuka Tiger Mexico 66: Retro sleekness for street style.",
+      "price": "KES 3,500"
+    },
+    "twitter_context": "Onitsuka Tiger Mexico 66. Retro style, sleek vibes.",
+    "expected_output": "Strut retro with Onitsuka Tiger Mexico 66. Sleek street style. KES 3,500. #OnitsukaTiger #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Salewa Mountain Trainer",
+      "tags": ["hiking", "rugged", "durable"],
+      "description": "Salewa Mountain Trainer: Rugged shoes for tough climbs.",
+      "price": "KES 5,200"
+    },
+    "twitter_context": "Salewa Mountain Trainer. Built for tough climbs.",
+    "expected_output": "Climb strong with Salewa Mountain Trainer. Rugged durability. KES 5,200. #SalewaMountain #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Reiss Leather Sneakers",
+      "tags": ["leather", "casual", "elegant"],
+      "description": "Reiss Leather Sneakers: Elegant leather for casual chic.",
+      "price": "KES 4,000"
+    },
+    "twitter_context": "Reiss Leather Sneakers. Casual elegance in leather.",
+    "expected_output": "Stay chic with Reiss Leather Sneakers. Elegant casual style. KES 4,000. #ReissSneakers #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Nike ZoomX Vaporfly",
+      "tags": ["running", "performance", "tech"],
+      "description": "Nike ZoomX Vaporfly: Elite performance for record-breaking runs.",
+      "price": "KES 5,000"
+    },
+    "twitter_context": "Nike ZoomX Vaporfly. Break records with elite tech.",
+    "expected_output": "Smash PRs with Nike ZoomX Vaporfly. Elite running tech. KES 5,000. #NikeVaporfly #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Adidas NMD R1",
+      "tags": ["streetwear", "modern", "comfort"],
+      "description": "Adidas NMD R1: Modern street style with plush comfort.",
+      "price": "KES 3,600"
+    },
+    "twitter_context": "Adidas NMD R1. Modern style, ultimate comfort.",
+    "expected_output": "Own the streets with Adidas NMD R1. Modern comfy vibes. KES 3,600. #AdidasNMD #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Clarks Wallabee Boots",
+      "tags": ["suede", "casual", "iconic"],
+      "description": "Clarks Wallabee: Iconic suede boots for timeless style.",
+      "price": "KES 4,200"
+    },
+    "twitter_context": "Clarks Wallabee Boots. Iconic suede style.",
+    "expected_output": "Step iconic with Clarks Wallabee Boots. Timeless suede vibe. KES 4,200. #ClarksWallabee #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Hoka One One Clifton 8",
+      "tags": ["running", "cushioning", "lightweight"],
+      "description": "Hoka One One Clifton 8: Lightweight cushioning for smooth runs.",
+      "price": "KES 4,500"
+    },
+    "twitter_context": "Hoka Clifton 8. Smooth runs, light vibes.",
+    "expected_output": "Glide easy with Hoka One One Clifton 8. Lightweight cushioning. KES 4,500. #HokaClifton #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Vans Authentic Sneakers",
+      "tags": ["classic", "canvas", "casual"],
+      "description": "Vans Authentic: Classic canvas sneakers for laid-back style.",
+      "price": "KES 2,300"
+    },
+    "twitter_context": "Vans Authentic Sneakers. Classic laid-back style.",
+    "expected_output": "Chill in style with Vans Authentic Sneakers. Classic canvas vibe. KES 2,300. #VansAuthentic #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Merrell Jungle Moc",
+      "tags": ["slip-on", "comfort", "casual"],
+      "description": "Merrell Jungle Moc: Slip-on comfort for easygoing days.",
+      "price": "KES 3,400"
+    },
+    "twitter_context": "Merrell Jungle Moc. Slip into easy comfort.",
+    "expected_output": "Slide into chill with Merrell Jungle Moc. Easy comfort. KES 3,400. #MerrellJungleMoc #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Puma Future Rider",
+      "tags": ["retro", "colorful", "streetwear"],
+      "description": "Puma Future Rider: Retro colors meet street-ready style.",
+      "price": "KES 3,200"
+    },
+    "twitter_context": "Puma Future Rider. Retro vibes, street heat.",
+    "expected_output": "Pop off with Puma Future Rider. Retro street style. KES 3,200. #PumaFutureRider #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Asics Gel-Kayano 28",
+      "tags": ["running", "support", "performance"],
+      "description": "Asics Gel-Kayano 28: Supportive comfort for long runs.",
+      "price": "KES 4,800"
+    },
+    "twitter_context": "Asics Gel-Kayano 28. Support for every mile.",
+    "expected_output": "Go the distance with Asics Gel-Kayano 28. Supportive comfort. KES 4,800. #AsicsKayano #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Dr. Martens Jadon Boots",
+      "tags": ["leather", "punk", "bold"],
+      "description": "Dr. Martens Jadon: Bold platform boots with punk attitude.",
+      "price": "KES 5,500"
+    },
+    "twitter_context": "Dr. Martens Jadon Boots. Bold punk vibes.",
+    "expected_output": "Stomp loud with Dr. Martens Jadon Boots. Bold punk style. KES 5,500. #DrMartensJadon #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "New Balance 990v5",
+      "tags": ["classic", "comfort", "athleisure"],
+      "description": "New Balance 990v5: Classic comfort for timeless style.",
+      "price": "KES 4,300"
+    },
+    "twitter_context": "New Balance 990v5. Classic comfort, timeless look.",
+    "expected_output": "Stay classic with New Balance 990v5. Timeless comfort. KES 4,300. #NewBalance990 #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Reebok Zig Kinetica",
+      "tags": ["athletic", "modern", "energy"],
+      "description": "Reebok Zig Kinetica: Modern energy for dynamic moves.",
+      "price": "KES 3,700"
+    },
+    "twitter_context": "Reebok Zig Kinetica. Energy in every step.",
+    "expected_output": "Move with power in Reebok Zig Kinetica. Dynamic energy. KES 3,700. #ReebokZig #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Skechers D’Lites",
+      "tags": ["chunky", "comfort", "trendy"],
+      "description": "Skechers D’Lites: Chunky comfort with trendy flair.",
+      "price": "KES 3,300"
+    },
+    "twitter_context": "Skechers D’Lites. Chunky style, comfy vibes.",
+    "expected_output": "Rock the trend with Skechers D’Lites. Chunky comfy style. KES 3,300. #SkechersDLites #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Converse Run Star Hike",
+      "tags": ["platform", "streetwear", "bold"],
+      "description": "Converse Run Star Hike: Bold platform style for standout looks.",
+      "price": "KES 3,500"
+    },
+    "twitter_context": "Converse Run Star Hike. Bold platform vibes.",
+    "expected_output": "Stand tall with Converse Run Star Hike. Bold platform style. KES 3,500. #ConverseRunStar #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Salomon Speedcross 5",
+      "tags": ["trail", "running", "grip"],
+      "description": "Salomon Speedcross 5: Aggressive grip for trail domination.",
+      "price": "KES 4,600"
+    },
+    "twitter_context": "Salomon Speedcross 5. Grip trails like a pro.",
+    "expected_output": "Dominate trails with Salomon Speedcross 5. Aggressive grip. KES 4,600. #SalomonSpeedcross #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Under Armour Charged Assert",
+      "tags": ["running", "support", "affordable"],
+      "description": "Under Armour Charged Assert: Supportive running at a great price.",
+      "price": "KES 3,200"
+    },
+    "twitter_context": "Under Armour Charged Assert. Run strong, save big.",
+    "expected_output": "Run smart with Under Armour Charged Assert. Supportive and affordable. KES 3,200. #UACharged #DripEmporium"
+  },
+  {
+    "product": {
+      "name": " Veja Campo Sneakers",
+      "tags": ["sustainable", "leather", "casual"],
+      "description": "Veja Campo: Sustainable leather sneakers with sleek style.",
+      "price": "KES 4,000"
+    },
+    "twitter_context": "Veja Campo Sneakers. Sustainable style, sleek look.",
+    "expected_output": "Step green with Veja Campo Sneakers. Sustainable sleek style. KES 4,000. #VejaCampo #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Fila Ray Tracer",
+      "tags": ["chunky", "retro", "streetwear"],
+      "description": "Fila Ray Tracer: Chunky retro sneakers for bold fits.",
+      "price": "KES 3,100"
+    },
+    "twitter_context": "Fila Ray Tracer. Chunky retro heat.",
+    "expected_output": "Make waves with Fila Ray Tracer. Chunky retro style. KES 3,100. #FilaRayTracer #DripEmporium"
+  },
+  {
+    "product": {
+      "name": "Keen Newport H2 Sandals",
+      "tags": ["sandals", "waterproof", "adventure"],
+      "description": "Keen Newport H2: Waterproof sandals for outdoor fun.",
+      "price": "KES 3,400"
+    },
+    "twitter_context": "Keen Newport H2 Sandals. Waterproof adventure vibes.",
+    "expected_output": "Explore wet or dry with Keen Newport H2 Sandals. Waterproof fun. KES 3,400. #KeenNewport #DripEmporium"
+  }
+]
