@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drip_emporium/providers/cart_provider.dart';
-import 'package:paystack_flutter_sdk/paystack_flutter_sdk.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:drip_emporium/screens/user_details_screen.dart'; // New import
+import 'package:url_launcher/url_launcher.dart';
+import 'package:drip_emporium/screens/user_details_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -20,7 +20,7 @@ class CartScreen extends StatelessWidget {
             children: [
               CircularProgressIndicator(),
               SizedBox(width: 16),
-              Text('Processing payment...'),
+              Text('Initializing payment...'),
             ],
           ),
         );
@@ -28,79 +28,85 @@ class CartScreen extends StatelessWidget {
     );
 
     try {
-      // TODO: Implement Paystack integration once the SDK API is stable
-      // For now, simulate a successful payment after a delay
-      await Future.delayed(const Duration(seconds: 2));
+      // Initialize Paystack transaction via API
+      final String paystackUrl = 'https://api.paystack.co/transaction/initialize';
+      final String reference = 'drip_emporium_${DateTime.now().millisecondsSinceEpoch}';
       
-      Navigator.of(context).pop(); // Close loading dialog
-      
-      // Simulate successful payment
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Payment Successful! (Demo Mode)'),
-          backgroundColor: Colors.green,
-        ),
+      final response = await http.post(
+        Uri.parse(paystackUrl),
+        headers: {
+          'Authorization': 'Bearer sk_live_0b6f6fab28f693068cf13640ee3f4134303fa568', // Your LIVE Secret Key
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'amount': (cart.totalAmount * 100).toInt(), // Amount in kobo
+          'email': email,
+          'reference': reference,
+          'currency': 'KES',
+          'callback_url': 'dripemporium://payment-callback', // Deep link callback URL
+        }),
       );
-      
-      cart.clearCart(); // Clear cart on successful payment
-      Navigator.of(context).pop(); // Go back to previous screen
-      
+
+      Navigator.of(context).pop(); // Close loading dialog
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        
+        if (data['status'] == true) {
+          final String authorizationUrl = data['data']['authorization_url'];
+          
+          // Launch the Paystack payment URL in browser
+          final Uri paymentUri = Uri.parse(authorizationUrl);
+          
+          if (await canLaunchUrl(paymentUri)) {
+            await launchUrl(
+              paymentUri,
+              mode: LaunchMode.externalApplication, // Opens in browser
+            );
+            
+            // Show success message - deep link will handle the callback
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Payment page opened in browser. The app will automatically update when payment is complete.'),
+                backgroundColor: Colors.blue,
+                duration: Duration(seconds: 5),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Could not open payment page'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Payment initialization failed: ${data['message']}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Server error: ${response.statusCode}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } catch (e) {
       Navigator.of(context).pop(); // Close loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error during checkout: $e'),
+          content: Text('Error during payment initialization: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
-    
-    // TODO: Uncomment and fix when Paystack SDK API is stable
-    /*
-    // Replace with your actual LIVE Paystack Public Key
-    PaystackSdk.initialize(publicKey: 'pk_live_26734e4f7302191b56b0ad0f9314bc75563e641c');
-
-    final String backendUrl = 'http://shengmtaa.com/api/private/donate-mobile';
-
-    try {
-      final response = await http.post(
-        Uri.parse(backendUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'amount': (cart.totalAmount * 100).toInt(),
-          'email': email,
-          'reference': DateTime.now().millisecondsSinceEpoch.toString(),
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final String accessCode = data['data']['access_code'];
-
-        // Use correct Paystack SDK API when available
-        final checkoutResponse = await PaystackSdk.chargeAccessCode(
-          context: context,
-          accessCode: accessCode,
-        );
-
-        if (checkoutResponse.status) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Payment Successful!')),
-          );
-          cart.clearCart();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Payment Failed: ${checkoutResponse.message}')),
-          );
-        }
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error during checkout: $e')),
-      );
-    }
-    */
   }
+
 
   @override
   Widget build(BuildContext context) {

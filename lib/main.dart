@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drip_emporium/services/data_repository.dart';
 import 'package:drip_emporium/providers/products_provider.dart';
-import 'package:drip_emporium/providers/cart_provider.dart'; // New import
+import 'package:drip_emporium/providers/cart_provider.dart';
 import 'package:drip_emporium/screens/product_details_screen.dart';
-import 'package:drip_emporium/screens/cart_screen.dart'; // New import
-import 'package:cached_network_image/cached_network_image.dart'; // New import
+import 'package:drip_emporium/screens/cart_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
+import 'package:drip_emporium/services/payment_service.dart';
+import 'package:uni_links/uni_links.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
   final dataRepository = DataRepository();
   await dataRepository.initDatabase();
   runApp(
@@ -22,8 +27,59 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget { // Changed to StatefulWidget
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> { // New State class
+  @override
+  void initState() {
+    super.initState();
+    _initUniLinks();
+  }
+
+  Future<void> _initUniLinks() async {
+    // Get initial link if app was launched via a deep link
+    try {
+      final initialLink = await getInitialLink();
+      if (initialLink != null) {
+        _handleDeepLink(initialLink);
+      }
+    } on PlatformException {
+      // Handle exception
+      print('Failed to get initial link.');
+    }
+
+    // Listen for incoming links while the app is running
+    getLinksStream().listen((String? link) {
+      if (link != null) {
+        _handleDeepLink(link);
+      }
+    }, onError: (err) {
+      // Handle error
+      print('Error receiving deep link: $err');
+    });
+  }
+
+  void _handleDeepLink(String link) {
+    // Parse the link and navigate accordingly
+    final uri = Uri.parse(link);
+    if (uri.path == '/payment-success' || uri.path == '/payment-callback') {
+      // Handle payment callback
+      final reference = uri.queryParameters['reference'] ?? '';
+      final status = uri.queryParameters['status'] ?? '';
+      
+      print('Payment callback received: reference=$reference, status=$status');
+      
+      if (reference.isNotEmpty) {
+        // Use the payment service to handle the callback
+        PaymentService.handlePaymentCallback(context, reference, status);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
