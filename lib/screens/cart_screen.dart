@@ -77,7 +77,7 @@ class CartScreen extends StatelessWidget {
                             ),
                             title: Text(item['name']),
                             subtitle: Text('Quantity: ${item['quantity']}'),
-                            trailing: Text('\$${(item['price'] * item['quantity']).toStringAsFixed(2)}'),
+                            trailing: Text('KES ${(item['price'] * item['quantity']).toStringAsFixed(2)}'),
                             onTap: () {
                               // Optionally, allow editing quantity or viewing product details
                             },
@@ -99,7 +99,7 @@ class CartScreen extends StatelessWidget {
                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          '\$${cart.totalAmount.toStringAsFixed(2)}',
+                          'KES ${cart.totalAmount.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,

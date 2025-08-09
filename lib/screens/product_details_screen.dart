@@ -62,7 +62,7 @@ class ProductDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8.0),
                   Text(
-                    '${product['price'].toStringAsFixed(2)}',
+                    'KES ${product['price'].toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,

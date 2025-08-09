@@ -154,7 +154,7 @@ class HomeScreen extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Text(
-                            "\$${product['price'].toStringAsFixed(2)}",
+                            'KES ${product['price'].toStringAsFixed(2)}',
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.primary, // Changed to primary (blue)
                               fontWeight: FontWeight.bold,
