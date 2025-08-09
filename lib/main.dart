@@ -8,7 +8,7 @@ import 'package:drip_emporium/screens/cart_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
 import 'package:drip_emporium/services/payment_service.dart';
-import 'package:uni_links/uni_links.dart';
+import 'package:app_links/app_links.dart';
 import 'package:flutter/services.dart';
 
 void main() async {
@@ -34,19 +34,30 @@ class MyApp extends StatefulWidget { // Changed to StatefulWidget
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> { // New State class
+class _MyAppState extends State<MyApp> {
+  late AppLinks _appLinks;
+  StreamSubscription<Uri>? _linkSubscription;
+
   @override
   void initState() {
     super.initState();
-    _initUniLinks();
+    _initAppLinks();
   }
 
-  Future<void> _initUniLinks() async {
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initAppLinks() async {
+    _appLinks = AppLinks();
+
     // Get initial link if app was launched via a deep link
     try {
-      final initialLink = await getInitialLink();
+      final initialLink = await _appLinks.getInitialLink();
       if (initialLink != null) {
-        _handleDeepLink(initialLink);
+        _handleDeepLink(initialLink.toString());
       }
     } on PlatformException {
       // Handle exception
@@ -54,10 +65,8 @@ class _MyAppState extends State<MyApp> { // New State class
     }
 
     // Listen for incoming links while the app is running
-    getLinksStream().listen((String? link) {
-      if (link != null) {
-        _handleDeepLink(link);
-      }
+    _linkSubscription = _appLinks.uriLinkStream.listen((Uri uri) {
+      _handleDeepLink(uri.toString());
     }, onError: (err) {
       // Handle error
       print('Error receiving deep link: $err');
