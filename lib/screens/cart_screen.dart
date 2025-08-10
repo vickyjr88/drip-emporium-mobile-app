@@ -3,11 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:drip_emporium/providers/cart_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:url_launcher/url_launcher.dart';
+// import 'package:url_launcher/url_launcher.dart'; // Removed
 import 'package:drip_emporium/screens/user_details_screen.dart';
+import 'package:drip_emporium/services/payment_service.dart'; // New import
 
 class CartScreen extends StatelessWidget {
-  const CartScreen({super.key});
+  final PaymentService paymentService; // New field
+  const CartScreen({super.key, required this.paymentService}); // Updated constructor
 
   Future<void> _handleCheckout(BuildContext context, CartProvider cart, String email, String name) async {
     // Show loading dialog
@@ -44,6 +46,7 @@ class CartScreen extends StatelessWidget {
           'reference': reference,
           'currency': 'KES',
           'callback_url': 'dripemporium://payment-callback', // Deep link callback URL
+          'channels': ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer', 'eft'], // All available channels
         }),
       );
 
@@ -53,33 +56,11 @@ class CartScreen extends StatelessWidget {
         final Map<String, dynamic> data = json.decode(response.body);
         
         if (data['status'] == true) {
-          final String authorizationUrl = data['data']['authorization_url'];
+          final String accessCode = data['data']['access_code']; // Get access_code
           
-          // Launch the Paystack payment URL in browser
-          final Uri paymentUri = Uri.parse(authorizationUrl);
+          // Launch the Paystack payment UI using the SDK
+          await paymentService.launchPayment(context, accessCode); // Call SDK method
           
-          if (await canLaunchUrl(paymentUri)) {
-            await launchUrl(
-              paymentUri,
-              mode: LaunchMode.externalApplication, // Opens in browser
-            );
-            
-            // Show success message - deep link will handle the callback
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Payment page opened in browser. The app will automatically update when payment is complete.'),
-                backgroundColor: Colors.blue,
-                duration: Duration(seconds: 5),
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Could not open payment page'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

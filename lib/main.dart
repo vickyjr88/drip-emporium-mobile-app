@@ -37,10 +37,13 @@ class MyApp extends StatefulWidget { // Changed to StatefulWidget
 class _MyAppState extends State<MyApp> {
   late AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSubscription;
+  late PaymentService _paymentService; // Declare PaymentService
 
   @override
   void initState() {
     super.initState();
+    _paymentService = PaymentService(); // Initialize PaymentService
+    _paymentService.initializePaystack('pk_live_26734e4f7302191b56b0ad0f9314bc75563e641c'); // Initialize Paystack SDK
     _initAppLinks();
   }
 
@@ -73,7 +76,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void _handleDeepLink(String link) {
+  void _handleDeepLink(String link) async {
     // Parse the link and navigate accordingly
     final uri = Uri.parse(link);
     if (uri.path == '/payment-success' || uri.path == '/payment-callback') {
@@ -85,7 +88,34 @@ class _MyAppState extends State<MyApp> {
       
       if (reference.isNotEmpty) {
         // Use the payment service to handle the callback
-        PaymentService.handlePaymentCallback(context, reference, status);
+        if (status == 'success') {
+          final verified = await PaymentService.verifyPayment(reference);
+          if (verified) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Payment Verified Successfully via Deep Link!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            final cart = Provider.of<CartProvider>(context, listen: false);
+            cart.clearCart();
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Deep link payment verification failed. Please contact support.'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Deep link payment was cancelled or failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -104,13 +134,14 @@ class _MyAppState extends State<MyApp> {
         ),
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
+      home: HomeScreen(paymentService: _paymentService),
     );
   }
 }
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final PaymentService paymentService; // New field
+  const HomeScreen({super.key, required this.paymentService}); // Updated constructor
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +158,7 @@ class HomeScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const CartScreen()),
+                        MaterialPageRoute(builder: (context) => CartScreen(paymentService: paymentService)), // Pass paymentService
                       );
                     },
                   ),

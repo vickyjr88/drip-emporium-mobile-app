@@ -1,5 +1,5 @@
 name: drip_emporium
-description: "A new Flutter project."
+description: "Define Your Look, Own Your Style."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -44,6 +44,7 @@ dependencies:
   cached_network_image: ^3.4.1
   url_launcher: ^6.3.1
   app_links: ^6.3.3
+  paystack_flutter_sdk: ^0.0.1-alpha.2
 
 dev_dependencies:
   flutter_test:
