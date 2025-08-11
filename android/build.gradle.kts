@@ -1,7 +1,20 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+
+    // Load key.properties
+    val keystoreProperties = Properties()
+    val keystorePropertiesFile = rootProject.file("key.properties")
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+        keystoreProperties.forEach { key, value ->
+            project.ext.set(key.toString(), value)
+        }
     }
 }
 

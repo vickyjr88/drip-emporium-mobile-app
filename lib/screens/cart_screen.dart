@@ -118,12 +118,38 @@ class CartScreen extends StatelessWidget {
                               backgroundImage: NetworkImage(item['imageUrl']),
                             ),
                             title: Text(item['name']),
-                            subtitle: Text('Quantity: ${item['quantity']}'),
-                            trailing: Text('KES ${(item['price'] * item['quantity']).toStringAsFixed(2)}'),
-                            onTap: () {
-                              // Optionally, allow editing quantity or viewing product details
-                            },
-                          ),
+                            subtitle: Row( // New Row for quantity controls
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove),
+                                  onPressed: () {
+                                    cart.decreaseItemQuantity(productId);
+                                  },
+                                ),
+                                Text('${item['quantity']}'),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () {
+                                    cart.increaseItemQuantity(productId);
+                                  },
+                                ),
+                                const Spacer(), // Pushes price to the right
+                                Text('KES ${(item['price'] * item['quantity']).toStringAsFixed(2)}'), // Display total price for item
+                              ],
+                            ),
+                            trailing: IconButton( // Delete button remains
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                cart.removeItem(productId);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${item['name']} removed from cart!'),
+                                    duration: const Duration(seconds: 1),
+                                  ),
+                                );
+                              },
+                            ),
+                          ), // This closes the ListTile
                         ),
                       );
                     },
