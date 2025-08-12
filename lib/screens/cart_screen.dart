@@ -7,12 +7,14 @@ import 'dart:convert';
 import 'package:drip_emporium/screens/user_details_screen.dart';
 import 'package:drip_emporium/services/payment_service.dart'; // New import
 import 'package:drip_emporium/config/app_config.dart'; // New import
+import 'package:cloud_firestore/cloud_firestore.dart'; // New import
+import 'package:firebase_auth/firebase_auth.dart'; // New import
 
 class CartScreen extends StatelessWidget {
   final PaymentService paymentService; // New field
   const CartScreen({super.key, required this.paymentService}); // Updated constructor
 
-  Future<void> _handleCheckout(BuildContext context, CartProvider cart, String email, String name) async {
+  Future<void> _handleCheckout(BuildContext context, CartProvider cart, String email, String name, String mobileNumber, String address) async {
     // Show loading dialog
     showDialog(
       context: context,
@@ -31,6 +33,19 @@ class CartScreen extends StatelessWidget {
     );
 
     try {
+      // Save order to Firestore before initiating payment
+      final orderId = await _saveOrderToFirestore(cart, email, name, mobileNumber, address);
+      if (orderId == null) {
+        Navigator.of(context).pop(); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to save order. Payment aborted.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       // Initialize Paystack transaction via API
       final String paystackUrl = 'https://api.paystack.co/transaction/initialize';
       final String reference = 'drip_emporium_${DateTime.now().millisecondsSinceEpoch}';
@@ -86,6 +101,44 @@ class CartScreen extends StatelessWidget {
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  Future<String?> _saveOrderToFirestore(
+      CartProvider cart, String email, String name, String mobileNumber, String address) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('User not logged in. Cannot save order.');
+        return null;
+      }
+
+      final orderData = {
+        'userId': user.uid,
+        'email': email,
+        'name': name,
+        'mobileNumber': mobileNumber,
+        'address': address,
+        'items': cart.items.entries.map((entry) {
+          return {
+            'productId': entry.key,
+            'name': entry.value['name'],
+            'price': entry.value['price'],
+            'quantity': entry.value['quantity'],
+            'imageUrl': entry.value['imageUrl'],
+          };
+        }).toList(),
+        'totalAmount': cart.totalAmount,
+        'timestamp': FieldValue.serverTimestamp(),
+        'status': 'pending', // Initial status
+      };
+
+      final docRef = await FirebaseFirestore.instance.collection('orders').add(orderData);
+      print('Order saved to Firestore with ID: ${docRef.id}');
+      return docRef.id;
+    } catch (e) {
+      print('Error saving order to Firestore: $e');
+      return null;
     }
   }
 
@@ -197,9 +250,9 @@ class CartScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (ctx) => UserDetailsScreen(
-                              onProceedToPayment: (email, name) {
+                              onProceedToPayment: (email, name, mobileNumber, address) {
                                 Navigator.of(ctx).pop(); // Pop UserDetailsScreen
-                                _handleCheckout(context, cart, email, name);
+                                _handleCheckout(context, cart, email, name, mobileNumber, address);
                               },
                             ),
                           ),

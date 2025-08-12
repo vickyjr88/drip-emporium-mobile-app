@@ -8,7 +8,7 @@ import 'package:drip_emporium/screens/signup_screen.dart'; // New import
 import 'dart:async'; // New import
 
 class UserDetailsScreen extends StatefulWidget {
-  final Function(String email, String name) onProceedToPayment;
+  final Function(String email, String name, String mobileNumber, String address) onProceedToPayment;
 
   const UserDetailsScreen({super.key, required this.onProceedToPayment});
 
@@ -190,7 +190,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    widget.onProceedToPayment(_emailController.text, _nameController.text);
+                    widget.onProceedToPayment(_emailController.text, _nameController.text, _mobileController.text, _addressController.text);
                   }
                 },
                 style: ElevatedButton.styleFrom(
