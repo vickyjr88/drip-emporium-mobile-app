@@ -35,6 +35,65 @@ class DataRepository {
     }
   }
 
+  Future<Map<String, dynamic>> fetchAllOrders({int limit = 10, DocumentSnapshot? startAfter}) async {
+    try {
+      Query query = _firestore.collection('orders').orderBy('timestamp', descending: true);
+
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+
+      final querySnapshot = await query.limit(limit).get();
+
+      final orders = querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['orderId'] = doc.id; // Add the document ID as 'orderId'
+        return data;
+      }).toList();
+
+      final lastDocument = querySnapshot.docs.isNotEmpty ? querySnapshot.docs.last : null;
+      final hasMore = querySnapshot.docs.length == limit;
+
+      return {
+        'orders': orders,
+        'lastDocument': lastDocument,
+        'hasMore': hasMore,
+      };
+    } catch (e) {
+      print('Error fetching all orders: $e');
+      throw Exception('Failed to fetch all orders: $e');
+    }
+  }
+
+  Future<void> updateOrderStatusAdmin(String orderId, String status) async {
+    try {
+      await _firestore.collection('orders').doc(orderId).update({'status': status});
+    } catch (e) {
+      print('Error updating order status for admin: $e');
+      throw Exception('Failed to update order status: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchUserOrders(String uid, {int limit = 20}) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('orders')
+          .where('userId', isEqualTo: uid)
+          .orderBy('timestamp', descending: true)
+          .limit(limit)
+          .get();
+
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        data['orderId'] = doc.id; // Add the document ID as 'orderId'
+        return data;
+      }).toList();
+    } catch (e) {
+      print('Error fetching user orders: $e');
+      throw Exception('Failed to fetch user orders: $e');
+    }
+  }
+
   Future<List<Map<String, dynamic>>> fetchProducts() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final int? lastFetchTimestamp = prefs.getInt(_lastFetchTimestampKey);

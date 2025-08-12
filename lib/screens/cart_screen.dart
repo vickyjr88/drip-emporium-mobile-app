@@ -39,7 +39,7 @@ class CartScreen extends StatelessWidget {
 
       // Initialize Paystack transaction via API
       final String paystackUrl = 'https://api.paystack.co/transaction/initialize';
-      final String reference = 'drip_emporium_${DateTime.now().millisecondsSinceEpoch}';
+      final String reference = orderId!; // Use orderId as reference
       
       final response = await http.post(
         Uri.parse(paystackUrl),
@@ -135,7 +135,7 @@ class CartScreen extends StatelessWidget {
         }).toList(),
         'totalAmount': cart.totalAmount,
         'timestamp': FieldValue.serverTimestamp(),
-        'status': 'pending', // Initial status
+        'status': 'initiated', // Initial status
       };
 
       final docRef = await FirebaseFirestore.instance.collection('orders').add(orderData);

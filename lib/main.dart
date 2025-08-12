@@ -94,8 +94,10 @@ class _MyAppState extends State<MyApp> {
       if (reference.isNotEmpty) {
         // Use the payment service to handle the callback
         if (status == 'success') {
+          _paymentService.updateOrderStatus(reference, 'verifying'); // Update order status to verifying
           final verified = await PaymentService.verifyPayment(reference);
           if (verified) {
+            _paymentService.updateOrderStatus(reference, 'successful'); // Update order status
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Payment Verified Successfully via Deep Link!'),
@@ -106,6 +108,7 @@ class _MyAppState extends State<MyApp> {
             cart.clearCart();
             Navigator.of(context).popUntil((route) => route.isFirst);
           } else {
+            _paymentService.updateOrderStatus(reference, 'failed'); // Update order status
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Deep link payment verification failed. Please contact support.'),
@@ -114,6 +117,7 @@ class _MyAppState extends State<MyApp> {
             );
           }
         } else {
+          _paymentService.updateOrderStatus(reference, 'failed'); // Update order status
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Deep link payment was cancelled or failed'),

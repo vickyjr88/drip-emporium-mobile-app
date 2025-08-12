@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:drip_emporium/screens/orders_screen.dart'; // New import
+import 'package:drip_emporium/screens/admin_orders_screen.dart'; // New import
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -21,10 +24,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   User? get currentUser => _auth.currentUser;
 
+  bool _isSuperAdmin = false; // New state variable
+
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
+    _checkIfSuperAdmin(); // Check admin status
+  }
+
+  Future<void> _checkIfSuperAdmin() async {
+    if (currentUser == null) {
+      setState(() {
+        _isSuperAdmin = false;
+      });
+      return;
+    }
+    try {
+      print('${currentUser!.uid}');
+      final doc = await _firestore.collection('superAdmins').doc(currentUser!.uid).get();
+      print(doc);
+      setState(() {
+        _isSuperAdmin = doc.exists;
+      });
+    } catch (e) {
+      print('Error checking super admin status: $e');
+      setState(() {
+        _isSuperAdmin = false;
+      });
+    }
   }
 
   Future<void> _loadUserProfile() async {
@@ -151,6 +179,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
               const SizedBox(height: 24.0),
+              ListTile(
+                leading: const Icon(Icons.receipt), // Icon for orders
+                title: const Text('My Orders'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                  );
+                },
+              ),
+              // Conditionally display admin orders link
+              if (_isSuperAdmin)
+                ListTile(
+                  leading: const Icon(Icons.admin_panel_settings), // Admin icon
+                  title: const Text('View All Orders (Admin)'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AdminOrdersScreen()),
+                    );
+                  },
+                ),
+              const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: _saveUserProfile,
                 child: const Text('Save Profile'),

@@ -6,9 +6,22 @@ import 'package:drip_emporium/providers/cart_provider.dart';
 import 'package:paystack_flutter_sdk/paystack_flutter_sdk.dart'; // New import
 import 'package:flutter/services.dart'; // For PlatformException
 import 'package:drip_emporium/config/app_config.dart'; // New import
+import 'package:cloud_firestore/cloud_firestore.dart'; // New import
 
 class PaymentService {
   final Paystack _paystack = Paystack(); // Initialize Paystack instance
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Initialize Firestore
+
+  // Method to update order status in Firestore
+  Future<void> updateOrderStatus(String orderId, String status) async {
+    try {
+      await _firestore.collection('orders').doc(orderId).update({'status': status});
+      print('Order $orderId status updated to $status');
+    } catch (e) {
+      print('Error updating order status for $orderId to $status: $e');
+      // Optionally, you could show a toast here, but it might be better to handle in UI
+    }
+  }
 
   // Method to initialize the SDK
   Future<bool> initializePaystack(String publicKey) async {
