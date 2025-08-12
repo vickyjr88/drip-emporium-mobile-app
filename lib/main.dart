@@ -227,12 +227,15 @@ class HomeScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: CachedNetworkImage(
-                            imageUrl: product['imageUrl'],
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                            errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image)),
+                          child: SizedBox( // New SizedBox to enforce square height
+                            height: 150.0, // Example height for the square
+                            child: CachedNetworkImage(
+                              imageUrl: product['imageUrl'],
+                              fit: BoxFit.cover, // Ensures image covers the square, cropping if necessary
+                              width: double.infinity,
+                              placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                              errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image)),
+                            ),
                           ),
                         ),
                         Padding(

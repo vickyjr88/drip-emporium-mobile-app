@@ -37,13 +37,17 @@ class ProductDetailsScreen extends StatelessWidget {
                       decoration: const BoxDecoration(
                         color: Colors.grey,
                       ),
-                      child: CachedNetworkImage(
-                        imageUrl: i,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                        errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image, size: 100)),
+                      child: SizedBox( // New SizedBox to enforce square
+                        width: 200.0, // Example width
+                        height: 200.0, // Example height
+                        child: CachedNetworkImage(
+                          imageUrl: i,
+                          fit: BoxFit.cover, // Ensures image covers the square, cropping if necessary
+                          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                          errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image, size: 100)),
+                        ),
                       ),
-                    );
+                    ); // Closing parenthesis for Container
                   },
                 );
               }).toList(),

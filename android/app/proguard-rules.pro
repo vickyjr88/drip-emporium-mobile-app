@@ -23,5 +23,20 @@
 -dontwarn org.openjsse.**
 -dontwarn org.slf4j.**
 
-# Keep MainActivity to prevent ClassNotFoundException
+# Keep MainActivity and its superclasses to prevent ClassNotFoundException
 -keep class com.dripemporium.app.MainActivity { *; }
+-keep class * extends io.flutter.embedding.android.FlutterActivity { *; }
+-keep class * extends io.flutter.embedding.android.FlutterFragmentActivity { *; }
+
+# Keep rule for Paystack TLSSocketFactory
+-keep class com.paystack.android.tls.TLSSocketFactory { *; }
+
+# Keep annotations for serialization
+-keepattributes *Annotation*
+
+# Keep Paystack SDK classes and their members from obfuscation
+-keep class co.paystack.** { *; }
+
+# Keep all classes from the Paystack SDK
+-keep class com.paystack.** { *; }
+-keep class co.paystack.** { *; }

@@ -114,8 +114,16 @@ class CartScreen extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: NetworkImage(item['imageUrl']),
+                            leading: SizedBox(
+                              width: 60.0, // Example width for the square
+                              height: 60.0, // Example height for the square
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8.0), // Optional: for rounded corners
+                                child: Image(
+                                  image: NetworkImage(item['imageUrl']),
+                                  fit: BoxFit.cover, // Ensures image covers the square, cropping if necessary
+                                ),
+                              ),
                             ),
                             title: Text(item['name']),
                             subtitle: Row( // New Row for quantity controls

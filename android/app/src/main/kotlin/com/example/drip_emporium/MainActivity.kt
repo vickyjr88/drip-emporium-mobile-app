@@ -1,4 +1,4 @@
-package com.example.drip_emporium
+package com.dripemporium.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
