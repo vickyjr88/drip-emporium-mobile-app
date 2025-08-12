@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:drip_emporium/services/payment_service.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/services.dart';
+import 'package:drip_emporium/config/app_config.dart'; // New import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +44,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _paymentService = PaymentService(); // Initialize PaymentService
-    _paymentService.initializePaystack('pk_live_26734e4f7302191b56b0ad0f9314bc75563e641c'); // Initialize Paystack SDK
+    _paymentService.initializePaystack(AppConfig.paystackPublicKey); // Use from AppConfig
     _initAppLinks();
   }
 

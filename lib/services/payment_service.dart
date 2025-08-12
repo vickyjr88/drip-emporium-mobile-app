@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:drip_emporium/providers/cart_provider.dart';
 import 'package:paystack_flutter_sdk/paystack_flutter_sdk.dart'; // New import
 import 'package:flutter/services.dart'; // For PlatformException
+import 'package:drip_emporium/config/app_config.dart'; // New import
 
 class PaymentService {
   final Paystack _paystack = Paystack(); // Initialize Paystack instance
@@ -93,7 +94,7 @@ class PaymentService {
       final response = await http.get(
         Uri.parse(verifyUrl),
         headers: {
-          'Authorization': 'Bearer YOUR_SECRET_KEY', // Replace with your actual secret key (from backend)
+          'Authorization': 'Bearer ${AppConfig.paystackSecretKey}', // Use from AppConfig
         },
       );
 

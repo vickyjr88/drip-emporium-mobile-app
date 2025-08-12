@@ -6,6 +6,7 @@ import 'dart:convert';
 // import 'package:url_launcher/url_launcher.dart'; // Removed
 import 'package:drip_emporium/screens/user_details_screen.dart';
 import 'package:drip_emporium/services/payment_service.dart'; // New import
+import 'package:drip_emporium/config/app_config.dart'; // New import
 
 class CartScreen extends StatelessWidget {
   final PaymentService paymentService; // New field
@@ -37,7 +38,7 @@ class CartScreen extends StatelessWidget {
       final response = await http.post(
         Uri.parse(paystackUrl),
         headers: {
-          'Authorization': 'Bearer sk_live_0b6f6fab28f693068cf13640ee3f4134303fa568', // Your LIVE Secret Key
+          'Authorization': 'Bearer ${AppConfig.paystackLiveSecretKey}', // Use from AppConfig
           'Content-Type': 'application/json',
         },
         body: json.encode({
