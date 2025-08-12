@@ -166,7 +166,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    // _formKey.currentState!.save(); // No longer needed with controllers
                     widget.onProceedToPayment(_emailController.text, _nameController.text);
                   }
                 },
@@ -179,48 +178,76 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                   style: TextStyle(fontSize: 18.0, color: Colors.white),
                 ),
               ),
+              // Show Sign Out button if user is logged in
+              if (_auth.currentUser != null) ...[
+                const SizedBox(height: 16.0), // Spacing between buttons
+                ElevatedButton(
+                  onPressed: () async {
+                    await _auth.signOut();
+                    _emailController.clear();
+                    _nameController.clear();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Signed out successfully!')),
+                    );
+                    setState(() {}); // Rebuild to hide sign-in options
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.secondary, // Different color for sign out
+                    padding: const EdgeInsets.symmetric(vertical: 15.0),
+                  ),
+                  child: const Text(
+                    'Sign Out',
+                    style: TextStyle(fontSize: 18.0, color: Colors.white),
+                  ),
+                ),
+              ],
               const SizedBox(height: 32.0),
               const Divider(),
               const SizedBox(height: 16.0),
-              Center(
-                child: Column(
-                  children: [
-                    const Text('Or sign in to pre-fill details:'),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        UserCredential? userCredential = await _signInWithGoogle();
-                        if (userCredential != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Signed in as ${userCredential.user!.displayName ?? userCredential.user!.email}')),
-                          );
-                          _populateFields(); // Populate fields after successful sign-in
-                        }
-                      },
-                      icon: Image.asset('assets/images/google_logo.png', height: 24.0), // Placeholder for Google logo
-                      label: const Text('Sign In with Google'),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => const LoginScreen()),
-                        ).then((_) => _populateFields()); // Populate fields when returning from login
-                      },
-                      child: const Text('Sign In with Email'),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => const SignUpScreen()),
-                        ).then((_) => _populateFields()); // Populate fields when returning from signup
-                      },
-                      child: const Text('Sign Up with Email'),
-                    ),
-                  ],
+              // Hide sign-in options if user is logged in
+              if (_auth.currentUser == null)
+                Center(
+                  child: Column(
+                    children: [
+                      const Text('Or sign in to pre-fill details:'),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          UserCredential? userCredential = await _signInWithGoogle();
+                          if (userCredential != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Signed in as ${userCredential.user!.displayName ?? userCredential.user!.email}')),
+                            );
+                            _populateFields(); // Populate fields after successful sign-in
+                            setState(() {}); // Rebuild to hide sign-in options
+                          }
+                        },
+                        icon: Image.asset('assets/images/google_logo.png', height: 24.0), // Placeholder for Google logo
+                        label: const Text('Sign In with Google'),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                          ).then((_) => _populateFields()); // Populate fields when returning from login
+                          setState(() {}); // Rebuild to hide sign-in options
+                        },
+                        child: const Text('Sign In with Email'),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => const SignUpScreen()),
+                          ).then((_) => _populateFields()); // Populate fields when returning from signup
+                          setState(() {}); // Rebuild to hide sign-in options
+                        },
+                        child: const Text('Sign Up with Email'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
         ),
