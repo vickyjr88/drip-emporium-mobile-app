@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:drip_emporium/services/data_repository.dart';
 import 'package:drip_emporium/providers/products_provider.dart';
 import 'package:drip_emporium/providers/cart_provider.dart';
+import 'package:drip_emporium/providers/favorites_provider.dart'; // New import
 import 'package:drip_emporium/screens/product_details_screen.dart';
 import 'package:drip_emporium/screens/cart_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -27,6 +28,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => ProductsProvider(dataRepository)),
         ChangeNotifierProvider(create: (context) => CartProvider()), // New provider
+        ChangeNotifierProvider(create: (context) => FavoritesProvider()), // New provider
       ],
       child: const MyApp(),
     ),
@@ -315,21 +317,35 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            'KES ${product['price'].toStringAsFixed(2)}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary, // Changed to primary (blue)
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14.0,
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'KES ${product['price'].toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary, // Changed to primary (blue)
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.0,
+                                ),
+                              ),
+                              IconButton( // Share icon
+                                padding: EdgeInsets.zero, // Reduce padding
+                                icon: Icon(Icons.share, color: Theme.of(context).colorScheme.primary),
+                                onPressed: () {
+                                  Share.share('Check out this product: ${product['name']} - KES ${product['price'].toStringAsFixed(2)} ${product['link']}');
+                                },
+                              ),
+                            ],
                           ),
                         ),
                         Align(
                           alignment: Alignment.bottomRight,
                           child: Row( // New Row to contain add-to-cart and share icons
-                            mainAxisSize: MainAxisSize.min, // To make the row as small as possible
+                            mainAxisSize: MainAxisSize.max, // To occupy all available space
+                            mainAxisAlignment: MainAxisAlignment.spaceAround, // Spread evenly
                             children: [
                               IconButton( // Add to cart icon
+                                padding: EdgeInsets.zero, // Reduce padding
                                 icon: Icon(Icons.add_shopping_cart, color: Theme.of(context).colorScheme.primary),
                                 onPressed: () {
                                   Provider.of<CartProvider>(context, listen: false).addItem(
@@ -347,8 +363,41 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                                 },
                               ),
+                              // New Favorite Icon
+                              Consumer<FavoritesProvider>(
+                                builder: (context, favoritesProvider, child) {
+                                  final isFavorite = favoritesProvider.isFavorite(product['id']);
+                                  return IconButton(
+                                    padding: EdgeInsets.zero, // Reduce padding
+                                    icon: Icon(
+                                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                                      color: isFavorite ? Colors.red : Theme.of(context).colorScheme.primary,
+                                    ),
+                                    onPressed: () {
+                                      if (isFavorite) {
+                                        favoritesProvider.removeFavorite(product['id']);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('${product['name']} removed from favorites!'),
+                                            duration: const Duration(seconds: 1),
+                                          ),
+                                        );
+                                      } else {
+                                        favoritesProvider.addFavorite(product['id']);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('${product['name']} added to favorites!'),
+                                            duration: const Duration(seconds: 1),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
                               // New WhatsApp Icon
                               IconButton(
+                                padding: EdgeInsets.zero, // Reduce padding
                                 icon: Icon(Icons.message, color: Colors.green), // Using message icon and green color
                                 onPressed: () async {
                                   final phoneNumber = '254113206481'; // Replace with your WhatsApp number
@@ -368,12 +417,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     );
                                   }
-                                },
-                              ),
-                              IconButton( // Share icon
-                                icon: Icon(Icons.share, color: Theme.of(context).colorScheme.primary),
-                                onPressed: () {
-                                  Share.share('Check out this product: ${product['name']} - KES ${product['price'].toStringAsFixed(2)} ${product['link']}');
                                 },
                               ),
                             ],

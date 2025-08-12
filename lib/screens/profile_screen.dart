@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:drip_emporium/screens/orders_screen.dart'; // New import
 import 'package:drip_emporium/screens/admin_orders_screen.dart'; // New import
+import 'package:drip_emporium/screens/favorites_screen.dart'; // New import
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -186,6 +187,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.favorite), // Icon for favorites
+                title: const Text('My Favorites'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const FavoritesScreen()),
                   );
                 },
               ),
