@@ -42,7 +42,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       print('Error loading user profile: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading profile: $e')),
+        const SnackBar(
+          content: Text('Failed to load profile. Please check your internet connection.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -70,7 +73,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } catch (e) {
         print('Error saving user profile: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving profile: $e')),
+          const SnackBar(
+            content: Text('Failed to save profile. Please check your internet connection.'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

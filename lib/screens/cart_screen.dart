@@ -34,7 +34,7 @@ class CartScreen extends StatelessWidget {
 
     try {
       // Save order to Firestore before initiating payment
-      final orderId = await _saveOrderToFirestore(cart, email, name, mobileNumber, address);
+      final orderId = await _saveOrderToFirestore(context, cart, email, name, mobileNumber, address);
       if (orderId == null) {
         Navigator.of(context).pop(); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
@@ -97,7 +97,7 @@ class CartScreen extends StatelessWidget {
       Navigator.of(context).pop(); // Close loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error during payment initialization: $e'),
+          content: Text('Error during payment initialization: Please check your internet connection and try again.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -105,11 +105,17 @@ class CartScreen extends StatelessWidget {
   }
 
   Future<String?> _saveOrderToFirestore(
-      CartProvider cart, String email, String name, String mobileNumber, String address) async {
+      BuildContext context, CartProvider cart, String email, String name, String mobileNumber, String address) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         print('User not logged in. Cannot save order.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You need to be logged in to place an order.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
         return null;
       }
 
@@ -138,9 +144,17 @@ class CartScreen extends StatelessWidget {
       return docRef.id;
     } catch (e) {
       print('Error saving order to Firestore: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save order: Please check your internet connection and try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return null;
     }
   }
+
+  
 
 
   @override

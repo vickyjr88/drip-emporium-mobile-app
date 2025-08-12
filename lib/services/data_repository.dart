@@ -31,7 +31,7 @@ class DataRepository {
       return doc.data();
     } catch (e) {
       print('Error fetching user details: $e');
-      return null;
+      throw Exception('Failed to fetch user details: $e');
     }
   }
 
@@ -75,27 +75,13 @@ class DataRepository {
         return products;
       } else {
         print('Failed to fetch from Google Sheet API: ${response.statusCode}');
+        throw Exception('Failed to load products. Server responded with status code ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching from Google Sheet API: $e');
+      throw Exception('Network error: Could not connect to the product server.');
     }
 
-    /*
-    // Fallback to Facebook Catalog API (Placeholder) - Commented out as per user request
-    try {
-      print('Attempting to fetch products from Facebook Catalog API (fallback)...');
-      // This is a placeholder. You'll need to implement actual Facebook Catalog API integration.
-      // This might involve a backend service to handle authentication and API calls.
-      // For now, returning an empty list or mock data.
-      // Example: final fbResponse = await http.get(Uri.parse('YOUR_FACEBOOK_CATALOG_API_URL_HERE'));
-      // if (fbResponse.statusCode == 200) { ... }
-      print('Facebook Catalog API fallback not yet implemented. Returning empty list.');
-      return [];
-    } catch (e) {
-      print('Error fetching from Facebook Catalog API: $e');
-      return [];
-    }
-    */
-    return []; // Ensure a non-null value is always returned
+    return []; // This line should ideally not be reached if exceptions are thrown
   }
 }

@@ -23,7 +23,7 @@ class ProductsProvider with ChangeNotifier {
     try {
       _products = await _dataRepository.fetchProducts();
     } catch (e) {
-      _errorMessage = 'Failed to load products: $e';
+      _errorMessage = 'Failed to load products. Please check your internet connection.';
       print(_errorMessage);
     } finally {
       _isLoading = false;

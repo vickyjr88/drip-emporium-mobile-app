@@ -48,10 +48,19 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       _nameController.text = user.displayName ?? '';
 
       // Fetch extra user details from Firestore
-      final userDoc = await _dataRepository.getUserDetails(user.uid);
-      if (userDoc != null) {
-        _mobileController.text = userDoc['mobileNumber'] ?? '';
-        _addressController.text = userDoc['address'] ?? '';
+      try {
+        final userDoc = await _dataRepository.getUserDetails(user.uid);
+        if (userDoc != null) {
+          _mobileController.text = userDoc['mobileNumber'] ?? '';
+          _addressController.text = userDoc['address'] ?? '';
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading user details: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } else {
       // Clear fields if user signs out
@@ -80,7 +89,10 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     } catch (e) {
       print('Error signing in with Google: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error signing in with Google: $e')),
+        const SnackBar(
+          content: Text('Failed to sign in with Google. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
       );
       return null;
     }
