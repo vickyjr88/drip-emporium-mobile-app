@@ -11,6 +11,7 @@ import 'package:drip_emporium/services/payment_service.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/services.dart';
 import 'package:drip_emporium/config/app_config.dart'; // New import
+import 'package:share_plus/share_plus.dart'; // New import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -264,22 +265,34 @@ class HomeScreen extends StatelessWidget {
                         ),
                         Align(
                           alignment: Alignment.bottomRight,
-                          child: IconButton(
-                            icon: Icon(Icons.add_shopping_cart, color: Theme.of(context).colorScheme.primary), // Changed to primary (blue)
-                            onPressed: () {
-                              Provider.of<CartProvider>(context, listen: false).addItem(
-                                product['id'],
-                                product['name'],
-                                product['price'],
-                                product['imageUrl'],
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('${product['name']} added to cart!'),
-                                  duration: const Duration(seconds: 1),
-                                ),
-                              );
-                            },
+                          child: Row( // New Row to contain add-to-cart and share icons
+                            mainAxisSize: MainAxisSize.min, // To make the row as small as possible
+                            children: [
+                              IconButton( // Add to cart icon
+                                icon: Icon(Icons.add_shopping_cart, color: Theme.of(context).colorScheme.primary),
+                                onPressed: () {
+                                  Provider.of<CartProvider>(context, listen: false).addItem(
+                                    product['id'],
+                                    product['name'],
+                                    product['price'],
+                                    product['imageUrl'],
+                                    product['link'],
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('${product['name']} added to cart!'),
+                                      duration: const Duration(seconds: 1),
+                                    ),
+                                  );
+                                },
+                              ),
+                              IconButton( // Share icon
+                                icon: Icon(Icons.share, color: Theme.of(context).colorScheme.primary),
+                                onPressed: () {
+                                  Share.share('Check out this product: ${product['name']} - KES ${product['price'].toStringAsFixed(2)} ${product['link']}');
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       ],

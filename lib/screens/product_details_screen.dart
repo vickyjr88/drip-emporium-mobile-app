@@ -108,6 +108,7 @@ class ProductDetailsScreen extends StatelessWidget {
                       product['name'],
                       product['price'],
                       product['imageUrl'],
+                      product['link'],
                     );
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

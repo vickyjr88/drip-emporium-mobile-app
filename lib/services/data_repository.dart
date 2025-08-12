@@ -16,10 +16,10 @@ class DataRepository {
       join(await getDatabasesPath(), 'drip_emporium.db'),
       onCreate: (db, version) {
         return db.execute(
-          'CREATE TABLE $_productsTableName(id TEXT PRIMARY KEY, name TEXT, price REAL, imageUrl TEXT, description TEXT)',
+          'CREATE TABLE $_productsTableName(id TEXT PRIMARY KEY, name TEXT, price REAL, imageUrl TEXT, description TEXT, link TEXT)',
         );
       },
-      version: 1,
+      version: 2, // Increment version if you want to trigger onUpgrade
     );
   }
 
@@ -50,6 +50,7 @@ class DataRepository {
           'price': double.parse(item['price'].toString().replaceAll(' KES', '').replaceAll(',', '')), // Parse price as double, remove commas
           'imageUrl': item['image_link'],
           'description': item['description'],
+          'link': item['link'], // New: Capture share link
         }).toList();
 
         // Cache data

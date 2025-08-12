@@ -26,6 +26,7 @@ class CartProvider with ChangeNotifier {
     String name,
     double price,
     String imageUrl,
+    String link,
   ) {
     if (_items.containsKey(productId)) {
       _items.update(productId, (existingItem) => {
