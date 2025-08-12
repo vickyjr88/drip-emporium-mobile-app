@@ -14,6 +14,7 @@ import 'package:drip_emporium/config/app_config.dart'; // New import
 import 'package:share_plus/share_plus.dart'; // New import
 import 'package:firebase_core/firebase_core.dart'; // New import
 import 'package:drip_emporium/screens/profile_screen.dart'; // New import
+import 'package:url_launcher/url_launcher.dart'; // New import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -344,6 +345,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                       duration: const Duration(seconds: 1),
                                     ),
                                   );
+                                },
+                              ),
+                              // New WhatsApp Icon
+                              IconButton(
+                                icon: Icon(Icons.message, color: Colors.green), // Using message icon and green color
+                                onPressed: () async {
+                                  final phoneNumber = '254113206481'; // Replace with your WhatsApp number
+                                  final message = 'Hello, I would like to order the following product:\n'
+                                      'Product: ${product['name']}\n'
+                                      'Price: KES ${product['price'].toStringAsFixed(2)}\n'
+                                      'Link: ${product['link']}';
+                                  final whatsappUrl = 'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
+
+                                  if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+                                    await launchUrl(Uri.parse(whatsappUrl));
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Could not launch WhatsApp. Please ensure it is installed.'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 },
                               ),
                               IconButton( // Share icon
