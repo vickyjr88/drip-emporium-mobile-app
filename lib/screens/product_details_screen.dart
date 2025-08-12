@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:drip_emporium/providers/cart_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart'; // New import
 import 'package:drip_emporium/screens/cart_screen.dart'; // New import
+import 'package:share_plus/share_plus.dart'; // New import
 
 import 'package:drip_emporium/services/payment_service.dart'; // New import
 
@@ -19,12 +20,50 @@ class ProductDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(product['name']),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
+          IconButton( // Share icon
+            icon: const Icon(Icons.share),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CartScreen(paymentService: paymentService)),
+              Share.share('Check out this product: ${product['name']} - KES ${product['price'].toStringAsFixed(2)} ${product['link'] ?? ''}');
+            },
+          ),
+          Consumer<CartProvider>( // Consumer for cart badge
+            builder: (context, cart, child) {
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.shopping_cart),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CartScreen(paymentService: paymentService)),
+                      );
+                    },
+                  ),
+                  if (cart.itemCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          cart.itemCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
           ),
