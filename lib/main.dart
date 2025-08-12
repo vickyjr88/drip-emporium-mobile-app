@@ -148,9 +148,33 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final PaymentService paymentService; // New field
   const HomeScreen({super.key, required this.paymentService}); // Updated constructor
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    Provider.of<ProductsProvider>(context, listen: false).setSearchQuery(_searchController.text);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +200,7 @@ class HomeScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => CartScreen(paymentService: paymentService)), // Pass paymentService
+                        MaterialPageRoute(builder: (context) => CartScreen(paymentService: widget.paymentService)), // Pass paymentService
                       );
                     },
                   ),
@@ -209,6 +233,26 @@ class HomeScreen extends StatelessWidget {
             },
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight), // Height of the search bar
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search products...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                prefixIcon: const Icon(Icons.search),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+              ),
+            ),
+          ),
+        ),
       ),
       body: Consumer<ProductsProvider>(
         builder: (context, productsProvider, child) {
@@ -235,7 +279,7 @@ class HomeScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProductDetailsScreen(product: product, paymentService: paymentService), // Pass paymentService
+                        builder: (context) => ProductDetailsScreen(product: product, paymentService: widget.paymentService), // Pass paymentService
                       ),
                     );
                   },
