@@ -217,7 +217,7 @@ class HomeScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProductDetailsScreen(product: product),
+                        builder: (context) => ProductDetailsScreen(product: product, paymentService: paymentService), // Pass paymentService
                       ),
                     );
                   },

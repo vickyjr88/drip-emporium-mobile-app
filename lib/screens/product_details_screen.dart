@@ -3,17 +3,32 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:provider/provider.dart';
 import 'package:drip_emporium/providers/cart_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart'; // New import
+import 'package:drip_emporium/screens/cart_screen.dart'; // New import
+
+import 'package:drip_emporium/services/payment_service.dart'; // New import
 
 class ProductDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> product;
+  final PaymentService paymentService; // New field
 
-  const ProductDetailsScreen({super.key, required this.product});
+  const ProductDetailsScreen({super.key, required this.product, required this.paymentService}); // Updated constructor
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(product['name']),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CartScreen(paymentService: paymentService)),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
