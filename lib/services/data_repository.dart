@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
@@ -10,6 +11,7 @@ class DataRepository {
   static const int _cacheDurationHours = 24;
 
   late Database _database;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> initDatabase() async {
     _database = await openDatabase(
@@ -21,6 +23,16 @@ class DataRepository {
       },
       version: 2, // Increment version if you want to trigger onUpgrade
     );
+  }
+
+  Future<Map<String, dynamic>?> getUserDetails(String uid) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      return doc.data();
+    } catch (e) {
+      print('Error fetching user details: $e');
+      return null;
+    }
   }
 
   Future<List<Map<String, dynamic>>> fetchProducts() async {

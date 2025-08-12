@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:drip_emporium/config/app_config.dart'; // New import
 import 'package:share_plus/share_plus.dart'; // New import
 import 'package:firebase_core/firebase_core.dart'; // New import
+import 'package:drip_emporium/screens/profile_screen.dart'; // New import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -153,6 +154,15 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Drip Emporium'),
         actions: [
+          IconButton( // New Profile icon
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
+          ),
           Consumer<CartProvider>(
             builder: (context, cart, child) {
               return Stack(

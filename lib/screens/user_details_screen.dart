@@ -1,3 +1,4 @@
+import 'package:drip_emporium/services/data_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // New import
 import 'package:google_sign_in/google_sign_in.dart'; // New import
@@ -24,6 +25,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final DataRepository _dataRepository = DataRepository();
 
   late StreamSubscription<User?> _authStateSubscription; // New
 
@@ -39,15 +41,24 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     });
   }
 
-  void _populateFields() {
+  void _populateFields() async {
     final user = _auth.currentUser;
     if (user != null) {
       _emailController.text = user.email ?? '';
       _nameController.text = user.displayName ?? '';
+
+      // Fetch extra user details from Firestore
+      final userDoc = await _dataRepository.getUserDetails(user.uid);
+      if (userDoc != null) {
+        _mobileController.text = userDoc['mobileNumber'] ?? '';
+        _addressController.text = userDoc['address'] ?? '';
+      }
     } else {
       // Clear fields if user signs out
       _emailController.clear();
       _nameController.clear();
+      _mobileController.clear();
+      _addressController.clear();
     }
   }
 
