@@ -12,9 +12,13 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/services.dart';
 import 'package:drip_emporium/config/app_config.dart'; // New import
 import 'package:share_plus/share_plus.dart'; // New import
+import 'package:firebase_core/firebase_core.dart'; // New import
+import 'package:firebase_auth/firebase_auth.dart'; // New import
+import 'package:drip_emporium/screens/auth_screen.dart'; // New import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // Initialize Firebase
   
   final dataRepository = DataRepository();
   await dataRepository.initDatabase();
@@ -136,7 +140,22 @@ class _MyAppState extends State<MyApp> {
         ),
         useMaterial3: true,
       ),
-      home: HomeScreen(paymentService: _paymentService),
+      home: StreamBuilder<User?>( // Use StreamBuilder to listen to auth state changes
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasData) {
+            // User is signed in
+            return HomeScreen(paymentService: _paymentService);
+          }
+          else {
+            // User is signed out
+            return const AuthScreen();
+          }
+        },
+      ),
     );
   }
 }
