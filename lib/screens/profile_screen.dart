@@ -13,6 +13,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _displayNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -27,6 +29,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     if (currentUser == null) return;
+
+    _displayNameController.text = currentUser!.displayName ?? '';
+    _emailController.text = currentUser!.email ?? '';
 
     try {
       final doc = await _firestore.collection('users').doc(currentUser!.uid).get();
@@ -75,6 +80,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void dispose() {
     _mobileController.dispose();
     _addressController.dispose();
+    _displayNameController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -90,6 +97,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
           key: _formKey,
           child: ListView(
             children: [
+              TextFormField(
+                controller: _displayNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Display Name',
+                  border: OutlineInputBorder(),
+                ),
+                readOnly: true, // Make it read-only
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                readOnly: true, // Make it read-only
+              ),
+              const SizedBox(height: 16.0),
               TextFormField(
                 controller: _mobileController,
                 decoration: const InputDecoration(
