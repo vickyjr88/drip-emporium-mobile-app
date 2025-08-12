@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:drip_emporium/providers/cart_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io'; // New import
 // import 'package:url_launcher/url_launcher.dart'; // Removed
 import 'package:drip_emporium/screens/user_details_screen.dart';
 import 'package:drip_emporium/services/payment_service.dart'; // New import
@@ -35,16 +36,6 @@ class CartScreen extends StatelessWidget {
     try {
       // Save order to Firestore before initiating payment
       final orderId = await _saveOrderToFirestore(context, cart, email, name, mobileNumber, address);
-      if (orderId == null) {
-        Navigator.of(context).pop(); // Close loading dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to save order. Payment aborted.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
 
       // Initialize Paystack transaction via API
       final String paystackUrl = 'https://api.paystack.co/transaction/initialize';
@@ -93,11 +84,19 @@ class CartScreen extends StatelessWidget {
           ),
         );
       }
+    } on SocketException catch (_) {
+      Navigator.of(context).pop(); // Close loading dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No internet connection. Please check your network settings.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } catch (e) {
       Navigator.of(context).pop(); // Close loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error during payment initialization: Please check your internet connection and try again.'),
+          content: Text('An unexpected error occurred: ${e.toString()}. Please try again.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -144,13 +143,7 @@ class CartScreen extends StatelessWidget {
       return docRef.id;
     } catch (e) {
       print('Error saving order to Firestore: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save order: Please check your internet connection and try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return null;
+      throw e; // Re-throw the exception
     }
   }
 
