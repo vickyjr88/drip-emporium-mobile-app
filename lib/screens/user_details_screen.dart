@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart'; // New import
 import 'package:drip_emporium/screens/auth_screen.dart'; // New import
 import 'package:drip_emporium/screens/login_screen.dart'; // New import
 import 'package:drip_emporium/screens/signup_screen.dart'; // New import
+import 'dart:async'; // New import
 
 class UserDetailsScreen extends StatefulWidget {
   final Function(String email, String name) onProceedToPayment;
@@ -16,18 +17,26 @@ class UserDetailsScreen extends StatefulWidget {
 
 class _UserDetailsScreenState extends State<UserDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController(); // New controller
-  final TextEditingController _nameController = TextEditingController(); // New controller
-  final TextEditingController _mobileController = TextEditingController(); // New controller
-  final TextEditingController _addressController = TextEditingController(); // New controller
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _mobileController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
-  final FirebaseAuth _auth = FirebaseAuth.instance; // New
-  final GoogleSignIn _googleSignIn = GoogleSignIn(); // New
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  late StreamSubscription<User?> _authStateSubscription; // New
 
   @override
   void initState() {
     super.initState();
     _populateFields(); // Populate fields if user is logged in
+
+    // Listen to auth state changes
+    _authStateSubscription = _auth.authStateChanges().listen((User? user) {
+      _populateFields(); // Update fields based on new user state
+      setState(() {}); // Rebuild UI
+    });
   }
 
   void _populateFields() {
@@ -35,7 +44,10 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     if (user != null) {
       _emailController.text = user.email ?? '';
       _nameController.text = user.displayName ?? '';
-      // Mobile and address are not from Firebase, so they remain empty or loaded from local storage
+    } else {
+      // Clear fields if user signs out
+      _emailController.clear();
+      _nameController.clear();
     }
   }
 
@@ -69,6 +81,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     _nameController.dispose();
     _mobileController.dispose();
     _addressController.dispose();
+    _authStateSubscription.cancel(); // Cancel subscription
     super.dispose();
   }
 
@@ -179,7 +192,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                 ),
               ),
               // Show Sign Out button if user is logged in
-              if (_auth.currentUser != null) ...[
+              if (false && _auth.currentUser != null) ...[ // Temporarily hide
                 const SizedBox(height: 16.0), // Spacing between buttons
                 ElevatedButton(
                   onPressed: () async {
