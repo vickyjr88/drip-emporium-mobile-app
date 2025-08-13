@@ -5,6 +5,8 @@ import 'package:drip_emporium/providers/cart_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart'; // New import
 import 'package:drip_emporium/screens/cart_screen.dart'; // New import
 import 'package:share_plus/share_plus.dart'; // New import
+import 'package:url_launcher/url_launcher.dart'; // New import
+import 'package:drip_emporium/providers/favorites_provider.dart'; // New import
 
 import 'package:drip_emporium/services/payment_service.dart'; // New import
 
@@ -131,6 +133,77 @@ class ProductDetailsScreen extends StatelessWidget {
                   Text(
                     product['description'],
                     style: const TextStyle(fontSize: 16.0),
+                  ),
+                  const SizedBox(height: 16.0), // Spacing before the new pills
+                  // New Row for action pills
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      // Share Pill
+                      ActionChip(
+                        avatar: const Icon(Icons.share),
+                        label: const Text('Share'),
+                        onPressed: () {
+                          Share.share('Check out this product: ${product['name']} - KES ${product['price'].toStringAsFixed(2)} ${product['link'] ?? ''}');
+                        },
+                      ),
+                      // Favorite Pill
+                      Consumer<FavoritesProvider>(
+                        builder: (context, favoritesProvider, child) {
+                          final isFavorite = favoritesProvider.isFavorite(product['id']);
+                          return ActionChip(
+                            avatar: Icon(
+                              isFavorite ? Icons.favorite : Icons.favorite_border,
+                              color: isFavorite ? Colors.red : null,
+                            ),
+                            label: Text(isFavorite ? 'Favorited' : 'Favorite'),
+                            onPressed: () {
+                              if (isFavorite) {
+                                favoritesProvider.removeFavorite(product['id']);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${product['name']} removed from favorites!'),
+                                    duration: const Duration(seconds: 1),
+                                  ),
+                                );
+                              } else {
+                                favoritesProvider.addFavorite(product['id']);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${product['name']} added to favorites!'),
+                                    duration: const Duration(seconds: 1),
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        },
+                      ),
+                      // WhatsApp Pill
+                      ActionChip(
+                        avatar: const Icon(Icons.message, color: Colors.green),
+                        label: const Text('Buy via WhatsApp'),
+                        onPressed: () async {
+                          final phoneNumber = '+254712345678'; // Replace with your WhatsApp number
+                          final message = 'Hello, I would like to order the following product:\n'
+                              'Product: ${product['name']}\n'
+                              'Price: KES ${product['price'].toStringAsFixed(2)}\n'
+                              'Link: ${product['link']}';
+                          final whatsappUrl = 'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
+
+                          if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+                            await launchUrl(Uri.parse(whatsappUrl));
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Could not launch WhatsApp. Please ensure it is installed.'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

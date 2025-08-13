@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:drip_emporium/config/app_config.dart'; // New import
 import 'package:share_plus/share_plus.dart'; // New import
 import 'package:firebase_core/firebase_core.dart'; // New import
+import 'package:firebase_auth/firebase_auth.dart'; // New import
 import 'package:drip_emporium/screens/profile_screen.dart'; // New import
 import 'package:url_launcher/url_launcher.dart'; // New import
 
@@ -185,13 +186,22 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Drip Emporium'),
         actions: [
-          IconButton( // New Profile icon
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
+          StreamBuilder<User?>(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return IconButton( // Show profile icon if logged in
+                  icon: const Icon(Icons.person),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                    );
+                  },
+                );
+              } else {
+                return const SizedBox.shrink(); // Show nothing if not logged in
+              }
             },
           ),
           Consumer<CartProvider>(

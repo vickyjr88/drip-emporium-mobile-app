@@ -12,7 +12,28 @@
           "package_name": "com.dripemporium.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "866673622650-a0njaebfkhcecq8aa32efaedn30cke7a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dripemporium.app",
+            "certificate_hash": "65a5d2a001c47641a05973018600ecf7178bff52"
+          }
+        },
+        {
+          "client_id": "866673622650-bnjdeq47gpa3v09u0ioerncco51l3ipe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dripemporium.app",
+            "certificate_hash": "ed48e31f475f612e37affe276c23d72d9ad3cd66"
+          }
+        },
+        {
+          "client_id": "866673622650-8qer5v1lme3vld3613atltj4rnics0uj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCBQWaxYYEo5dXtP2COxiRRR9rfb84hgF8"
@@ -20,7 +41,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "866673622650-8qer5v1lme3vld3613atltj4rnics0uj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "866673622650-8fbque32mhpgrjvjdl9mo25kaih278sr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dripemporium.app"
+              }
+            }
+          ]
         }
       }
     }

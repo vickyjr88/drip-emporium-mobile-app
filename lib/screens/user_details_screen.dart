@@ -2,7 +2,7 @@ import 'package:drip_emporium/services/data_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // New import
 import 'package:google_sign_in/google_sign_in.dart'; // New import
-import 'package:drip_emporium/screens/auth_screen.dart'; // New import
+ // New import
 import 'package:drip_emporium/screens/login_screen.dart'; // New import
 import 'package:drip_emporium/screens/signup_screen.dart'; // New import
 import 'dart:async'; // New import

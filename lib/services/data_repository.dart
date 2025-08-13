@@ -21,7 +21,12 @@ class DataRepository {
           'CREATE TABLE $_productsTableName(id TEXT PRIMARY KEY, name TEXT, price REAL, imageUrl TEXT, description TEXT, link TEXT)',
         );
       },
-      version: 2, // Increment version if you want to trigger onUpgrade
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE $_productsTableName ADD COLUMN link TEXT');
+        }
+      },
+      version: 3, // Increment version to trigger onUpgrade
     );
   }
 
