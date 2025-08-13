@@ -1,3 +1,4 @@
+import 'package:drip_emporium/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drip_emporium/services/data_repository.dart';
@@ -189,19 +190,22 @@ class _HomeScreenState extends State<HomeScreen> {
           StreamBuilder<User?>(
             stream: FirebaseAuth.instance.authStateChanges(),
             builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return IconButton( // Show profile icon if logged in
-                  icon: const Icon(Icons.person),
-                  onPressed: () {
+              return IconButton( 
+                icon: const Icon(Icons.person),
+                onPressed: () {
+                  if (snapshot.hasData) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const ProfileScreen()),
                     );
-                  },
-                );
-              } else {
-                return const SizedBox.shrink(); // Show nothing if not logged in
-              }
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    );
+                  }
+                },
+              );
             },
           ),
           Consumer<CartProvider>(
@@ -411,9 +415,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 icon: Icon(Icons.message, color: Colors.green), // Using message icon and green color
                                 onPressed: () async {
                                   final phoneNumber = '254113206481'; // Replace with your WhatsApp number
-                                  final message = 'Hello, I would like to order the following product:\n'
-                                      'Product: ${product['name']}\n'
-                                      'Price: KES ${product['price'].toStringAsFixed(2)}\n'
+                                  final message = 'Hello, I would like to order the following product:\n' + 
+                                      'Product: ${product['name']}\n' + 
+                                      'Price: KES ${product['price'].toStringAsFixed(2)}\n' + 
                                       'Link: ${product['link']}';
                                   final whatsappUrl = 'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
 

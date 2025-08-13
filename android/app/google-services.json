@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "866673622650-ffiurohdbe2huh40tp3sfharrt3lh28o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dripemporium.app",
+            "certificate_hash": "47bcc3e34c4f3ac330f9efac451e6620d28758b0"
+          }
+        },
+        {
           "client_id": "866673622650-8qer5v1lme3vld3613atltj4rnics0uj.apps.googleusercontent.com",
           "client_type": 3
         }
