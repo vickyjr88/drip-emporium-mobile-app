@@ -40,6 +40,45 @@ class DataRepository {
     }
   }
 
+  Future<void> createOrUpdateUser({
+    required String uid,
+    required String email,
+    String? displayName,
+    String? photoURL,
+    String? phoneNumber,
+  }) async {
+    try {
+      final userRef = _firestore.collection('users').doc(uid);
+      final userDoc = await userRef.get();
+      
+      final userData = {
+        'email': email,
+        'displayName': displayName ?? '',
+        'photoURL': photoURL ?? '',
+        'phoneNumber': phoneNumber ?? '',
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (!userDoc.exists) {
+        // Create new user with additional fields
+        userData['createdAt'] = FieldValue.serverTimestamp();
+        userData['address'] = '';
+        userData['city'] = '';
+        userData['postalCode'] = '';
+        
+        await userRef.set(userData);
+        print('Created new user document for UID: $uid');
+      } else {
+        // Update existing user
+        await userRef.update(userData);
+        print('Updated existing user document for UID: $uid');
+      }
+    } catch (e) {
+      print('Error creating/updating user: $e');
+      throw Exception('Failed to create/update user: $e');
+    }
+  }
+
   Future<Map<String, dynamic>> fetchAllOrders({int limit = 10, DocumentSnapshot? startAfter}) async {
     try {
       Query query = _firestore.collection('orders').orderBy('timestamp', descending: true);

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:drip_emporium/screens/signup_screen.dart';
+import 'package:drip_emporium/services/data_repository.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,6 +32,10 @@ class _LoginScreenState extends State<LoginScreen> {
         idToken: googleAuth.idToken,
       );
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      
+      // Create/update user document in Firestore
+      await _createOrUpdateUserDocument(userCredential.user!);
+      
       Navigator.of(context).pop();
       return userCredential;
     } catch (e) {
@@ -47,10 +52,14 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signInWithEmailAndPassword() async {
     if (_formKey.currentState!.validate()) {
       try {
-        await _auth.signInWithEmailAndPassword(
+        final userCredential = await _auth.signInWithEmailAndPassword(
           email: _emailController.text,
           password: _passwordController.text,
         );
+        
+        // Create/update user document in Firestore
+        await _createOrUpdateUserDocument(userCredential.user!);
+        
         Navigator.of(context).pop();
       } on FirebaseAuthException catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -60,6 +69,22 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _createOrUpdateUserDocument(User user) async {
+    try {
+      final dataRepository = DataRepository();
+      await dataRepository.createOrUpdateUser(
+        uid: user.uid,
+        email: user.email ?? '',
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        phoneNumber: user.phoneNumber,
+      );
+    } catch (e) {
+      print('Error creating/updating user document: $e');
+      // Don't show error to user as this shouldn't block login
     }
   }
 

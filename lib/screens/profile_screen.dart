@@ -1,3 +1,4 @@
+import 'package:drip_emporium/screens/all_users_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -125,6 +126,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await _auth.signOut();
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -209,6 +219,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const AdminOrdersScreen()),
+                    );
+                  },
+                ),
+              if (_isSuperAdmin)
+                ListTile(
+                  leading: const Icon(Icons.people), // All users icon
+                  title: const Text('View All Users (Admin)'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AllUsersScreen()),
                     );
                   },
                 ),

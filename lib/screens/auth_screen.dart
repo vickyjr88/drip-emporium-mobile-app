@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:drip_emporium/screens/login_screen.dart';
 import 'package:drip_emporium/screens/signup_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart'; // For Google Sign-In
+import 'package:drip_emporium/services/data_repository.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -27,13 +28,34 @@ class _AuthScreenState extends State<AuthScreen> {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      return await _auth.signInWithCredential(credential);
+      final userCredential = await _auth.signInWithCredential(credential);
+      
+      // Create/update user document in Firestore
+      await _createOrUpdateUserDocument(userCredential.user!);
+      
+      return userCredential;
     } catch (e) {
       print('Error signing in with Google: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error signing in with Google: $e')),
       );
       return null;
+    }
+  }
+
+  Future<void> _createOrUpdateUserDocument(User user) async {
+    try {
+      final dataRepository = DataRepository();
+      await dataRepository.createOrUpdateUser(
+        uid: user.uid,
+        email: user.email ?? '',
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        phoneNumber: user.phoneNumber,
+      );
+    } catch (e) {
+      print('Error creating/updating user document: $e');
+      // Don't show error to user as this shouldn't block login
     }
   }
 

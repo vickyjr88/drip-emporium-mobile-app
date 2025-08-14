@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:drip_emporium/services/data_repository.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -17,10 +18,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _signUpWithEmailAndPassword() async {
     if (_formKey.currentState!.validate()) {
       try {
-        await _auth.createUserWithEmailAndPassword(
+        final userCredential = await _auth.createUserWithEmailAndPassword(
           email: _emailController.text,
           password: _passwordController.text,
         );
+        
+        // Create user document in Firestore
+        await _createUserDocument(userCredential.user!);
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Signed up successfully!')),
         );
@@ -42,6 +47,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
           SnackBar(content: Text('Error: $e')),
         );
       }
+    }
+  }
+
+  Future<void> _createUserDocument(User user) async {
+    try {
+      final dataRepository = DataRepository();
+      await dataRepository.createOrUpdateUser(
+        uid: user.uid,
+        email: user.email ?? '',
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        phoneNumber: user.phoneNumber,
+      );
+    } catch (e) {
+      print('Error creating user document: $e');
+      // Don't show error to user as this shouldn't block signup
     }
   }
 

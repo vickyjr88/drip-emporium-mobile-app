@@ -55,6 +55,26 @@ class _MyAppState extends State<MyApp> {
     _paymentService = PaymentService(); // Initialize PaymentService
     _paymentService.initializePaystack(AppConfig.paystackPublicKey); // Use from AppConfig
     _initAppLinks();
+    _checkAndCreateUserDocument(); // Check if user is logged in and create/update document
+  }
+
+  Future<void> _checkAndCreateUserDocument() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final dataRepository = DataRepository();
+        await dataRepository.createOrUpdateUser(
+          uid: user.uid,
+          email: user.email ?? '',
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          phoneNumber: user.phoneNumber,
+        );
+        print('User document checked/updated for existing user: ${user.uid}');
+      }
+    } catch (e) {
+      print('Error checking/creating user document on app start: $e');
+    }
   }
 
   @override
