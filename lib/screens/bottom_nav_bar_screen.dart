@@ -63,15 +63,50 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
     const phoneNumber = '254113206481';
     const whatsappUrl = 'https://wa.me/$phoneNumber';
 
-    if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
-      await launchUrl(Uri.parse(whatsappUrl));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not launch WhatsApp. Please ensure it is installed.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Chat on WhatsApp'),
+          content: Text.rich(
+            TextSpan(
+              text: 'Do you want to chat with ',
+              children: [
+                TextSpan(
+                  text: 'Drip Emporium',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(
+                  text: ' on WhatsApp?',
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Chat'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+        await launchUrl(Uri.parse(whatsappUrl));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not launch WhatsApp. Please ensure it is installed.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
