@@ -5,6 +5,8 @@ import 'package:drip_emporium/services/payment_service.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:drip_emporium/main.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:drip_emporium/screens/login_screen.dart';
 
 
 class BottomNavBarScreen extends StatefulWidget {
@@ -30,9 +32,21 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
     ];
   }
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index) async {
     if (index == 1) { // Index 1 is the "Message" item
       _launchWhatsApp();
+    } else if (index == 3) { // Index 3 is the "Account" item
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        setState(() {
+          _selectedIndex = 2; // ProfileScreen is at index 2 in _pages
+        });
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      }
     } else {
       setState(() {
         // Adjust index for the pages list

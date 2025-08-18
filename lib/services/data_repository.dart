@@ -8,7 +8,7 @@ import 'package:path/path.dart';
 class DataRepository {
   static const String _lastFetchTimestampKey = 'last_fetch_timestamp';
   static const String _productsTableName = 'products';
-  static const int _cacheDurationHours = 24;
+  static const int _cacheDurationHours = 0;
 
   late Database _database;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -18,15 +18,26 @@ class DataRepository {
       join(await getDatabasesPath(), 'drip_emporium.db'),
       onCreate: (db, version) {
         return db.execute(
-          'CREATE TABLE $_productsTableName(id TEXT PRIMARY KEY, name TEXT, price REAL, imageUrl TEXT, description TEXT, link TEXT)',
+          'CREATE TABLE $_productsTableName(id TEXT PRIMARY KEY, name TEXT, price REAL, imageUrl TEXT, description TEXT, link TEXT, availability TEXT, condition TEXT, brand TEXT, sale_price REAL, color TEXT, size TEXT, product_tags TEXT, categories TEXT, stores TEXT DEFAULT \'Drip Emporium\')',
         );
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 3) {
           await db.execute('ALTER TABLE $_productsTableName ADD COLUMN link TEXT');
         }
+        if (oldVersion < 4) {
+          await db.execute('ALTER TABLE $_productsTableName ADD COLUMN availability TEXT');
+          await db.execute('ALTER TABLE $_productsTableName ADD COLUMN condition TEXT');
+          await db.execute('ALTER TABLE $_productsTableName ADD COLUMN brand TEXT');
+          await db.execute('ALTER TABLE $_productsTableName ADD COLUMN sale_price REAL');
+          await db.execute('ALTER TABLE $_productsTableName ADD COLUMN color TEXT');
+          await db.execute('ALTER TABLE $_productsTableName ADD COLUMN size TEXT');
+          await db.execute('ALTER TABLE $_productsTableName ADD COLUMN product_tags TEXT');
+          await db.execute('ALTER TABLE $_productsTableName ADD COLUMN categories TEXT');
+          await db.execute('ALTER TABLE $_productsTableName ADD COLUMN stores TEXT DEFAULT \'Drip Emporium\'');
+        }
       },
-      version: 3, // Increment version to trigger onUpgrade
+      version: 4 // Increment version to trigger onUpgrade
     );
   }
 
@@ -154,8 +165,10 @@ class DataRepository {
 
     // Try Google Sheet API
     try {
-      print('Attempting to fetch products from Google Sheet API...');
-      final response = await http.get(Uri.parse('https://shengmtaa.com/api/private/facebook_catalog'));
+      final url = 'https://shengmtaa.com/api/private/v2/facebook_catalog';
+      print('Attempting to fetch products from Google Sheet API from URL: $url');
+      final response = await http.get(Uri.parse(url));
+      print('API Response Status Code: ${response.statusCode}');
       if (response.statusCode == 200) {
         print('API Response Body: ${response.body}'); // Log the response body
         final List<dynamic> data = json.decode(response.body);
@@ -166,6 +179,15 @@ class DataRepository {
           'imageUrl': item['image_link'],
           'description': item['description'],
           'link': item['link'], // New: Capture share link
+          'availability': item['availability'] ?? '',
+          'condition': item['condition'] ?? '',
+          'brand': item['brand'] ?? '',
+          'sale_price': item['sale_price'] != null ? double.parse(item['sale_price'].toString().replaceAll(' KES', '').replaceAll(',', '')) : null,
+          'color': item['color'] ?? '',
+          'size': item['size'] ?? '',
+          'product_tags': item['product_tags'] ?? '',
+          'categories': item['categories'] ?? '',
+          'stores': item['stores'] ?? 'Drip Emporium',
         }).toList();
 
         // Cache data
@@ -181,8 +203,8 @@ class DataRepository {
         throw Exception('Failed to load products. Server responded with status code ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching from Google Sheet API: $e');
-      throw Exception('Network error: Could not connect to the product server.');
+      print('Error fetching products: $e');
+      throw Exception('Network error: Could not connect to the product server. Error: $e');
     }
 
     return []; // This line should ideally not be reached if exceptions are thrown
