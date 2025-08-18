@@ -18,6 +18,8 @@ import 'package:firebase_core/firebase_core.dart'; // New import
 import 'package:firebase_auth/firebase_auth.dart'; // New import
 import 'package:drip_emporium/screens/profile_screen.dart'; // New import
 import 'package:url_launcher/url_launcher.dart'; // New import
+import 'package:drip_emporium/screens/bottom_nav_bar_screen.dart';
+import 'package:drip_emporium/screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -168,7 +170,7 @@ class _MyAppState extends State<MyApp> {
         ),
         useMaterial3: true,
       ),
-      home: HomeScreen(paymentService: _paymentService),
+      home: BottomNavBarScreen(paymentService: _paymentService),
     );
   }
 }
@@ -210,20 +212,13 @@ class _HomeScreenState extends State<HomeScreen> {
           StreamBuilder<User?>(
             stream: FirebaseAuth.instance.authStateChanges(),
             builder: (context, snapshot) {
-              return IconButton( 
-                icon: const Icon(Icons.person),
+              return IconButton(
+                icon: const Icon(Icons.settings),
                 onPressed: () {
-                  if (snapshot.hasData) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                    );
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    );
-                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                  );
                 },
               );
             },
