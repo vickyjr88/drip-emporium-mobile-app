@@ -8,7 +8,7 @@ import 'package:path/path.dart';
 class DataRepository {
   static const String _lastFetchTimestampKey = 'last_fetch_timestamp';
   static const String _productsTableName = 'products';
-  static const int _cacheDurationHours = 0;
+  static const int _cacheDurationHours = 24;
 
   late Database _database;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

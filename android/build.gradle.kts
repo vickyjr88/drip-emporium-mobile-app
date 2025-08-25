@@ -1,6 +1,17 @@
 import java.util.Properties
 import java.io.FileInputStream
 
+//buildscript {
+//    ext.kotlin_version = "2.1.0" // New: Define Kotlin version
+//    repositories {
+//        google()
+//        mavenCentral()
+//    }
+//    dependencies {
+//        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+//    }
+//}
+
 allprojects {
     repositories {
         google()

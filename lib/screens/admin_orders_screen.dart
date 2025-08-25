@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:drip_emporium/services/data_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // For DocumentSnapshot
+import 'package:url_launcher/url_launcher.dart'; // New import for launching URLs
 
 class AdminOrdersScreen extends StatefulWidget {
   const AdminOrdersScreen({super.key});
@@ -72,6 +73,58 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     }
   }
 
+  String _sanitizePhoneNumber(String phoneNumber) {
+    String sanitizedNumber = phoneNumber.replaceAll(RegExp(r'[+\s]'), ''); // Remove '+' and spaces
+    if (sanitizedNumber.startsWith('0')) {
+      sanitizedNumber = '254' + sanitizedNumber.substring(1); // Replace leading '0' with '254'
+    }
+    return sanitizedNumber;
+  }
+
+  // Helper function to make a phone call
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final sanitizedNumber = _sanitizePhoneNumber(phoneNumber);
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: sanitizedNumber,
+    );
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch phone call.')),
+      );
+    }
+  }
+
+  // Helper function to launch WhatsApp
+  Future<void> _launchWhatsApp(String phoneNumber) async {
+    final sanitizedNumber = _sanitizePhoneNumber(phoneNumber);
+    final Uri launchUri = Uri.parse('https://wa.me/$sanitizedNumber');
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch WhatsApp. Ensure it is installed.')),
+      );
+    }
+  }
+
+  // Helper function to send an email
+  Future<void> _sendEmail(String emailAddress) async {
+    final Uri launchUri = Uri(
+      scheme: 'mailto',
+      path: emailAddress,
+    );
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch email client.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,10 +157,9 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Order ID: ${order['orderId'] ?? 'N/A'}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                Text('${order['name'] ?? 'N/A'}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                 Text('User ID: ${order['userId'] ?? 'N/A'}'),
                                 Text('Email: ${order['email'] ?? 'N/A'}'),
-                                Text('Name: ${order['name'] ?? 'N/A'}'),
                                 Text('Mobile: ${order['mobileNumber'] ?? 'N/A'}'),
                                 Text('Address: ${order['address'] ?? 'N/A'}'),
                                 Text('Total Amount: KES ${order['totalAmount']?.toStringAsFixed(2) ?? 'N/A'}'),
@@ -139,6 +191,50 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                                     );
                                   }).toList(),
                                 Text('Order Date: ${order['timestamp'] != null ? (order['timestamp'].toDate()).toLocal().toString().split('.')[0] : 'N/A'}'),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.phone),
+                                      onPressed: () {
+                                        final phoneNumber = order['mobileNumber'] ?? '';
+                                        if (phoneNumber.isNotEmpty) {
+                                          _makePhoneCall(phoneNumber);
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Phone number not available.')),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.chat), // Using Icons.chat for WhatsApp
+                                      onPressed: () {
+                                        final phoneNumber = order['mobileNumber'] ?? '';
+                                        if (phoneNumber.isNotEmpty) {
+                                          _launchWhatsApp(phoneNumber);
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('WhatsApp number not available.')),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.email),
+                                      onPressed: () {
+                                        final email = order['email'] ?? '';
+                                        if (email.isNotEmpty) {
+                                          _sendEmail(email);
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Email address not available.')),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),

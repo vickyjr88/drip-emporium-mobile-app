@@ -76,8 +76,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Order ID: ${order['orderId'] ?? 'N/A'}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                Text('Total Amount: KES ${order['totalAmount']?.toStringAsFixed(2) ?? 'N/A'}'),
+                                Text('Total Amount: KES ${order['totalAmount']?.toStringAsFixed(2) ?? 'N/A'}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                 Text('Status: ${order['status'] ?? 'N/A'}'),
                                 // Display items in the order
                                 if (order['items'] != null && order['items'] is List)

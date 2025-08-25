@@ -39,14 +39,24 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _launchUrl('https://instagram.com/emporium_drip'),
           ),
           ListTile(
+            leading: const Icon(Icons.link), // Generic icon for Threads
+            title: const Text('Threads - @emporium_drip'),
+            onTap: () => _launchUrl('https://www.threads.net/@emporium_drip'),
+          ),
+          ListTile(
             leading: const Icon(Icons.facebook), // Generic icon for Facebook
             title: const Text('Facebook - Drip Emporium'),
-            onTap: () => _launchUrl('https://facebook.com/DripEmporium'),
+            onTap: () => _launchUrl('https://facebook.com/dripemp'),
           ),
           ListTile(
             leading: const Icon(Icons.tiktok), // Generic icon for TikTok
             title: const Text('TikTok - @drip.emporium'),
             onTap: () => _launchUrl('https://tiktok.com/@drip.emporium'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.web), // Generic icon for Website
+            title: const Text('Website - dripemporium.store'),
+            onTap: () => _launchUrl('https://dripemporium.store'),
           ),
           ListTile(
             leading: const Icon(Icons.message), // WhatsApp icon

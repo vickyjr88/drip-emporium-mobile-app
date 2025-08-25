@@ -46,3 +46,11 @@ lib/config/app_config.dart
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Project-specific generated files
+.metadata
+devtools_options.yaml
+gpt-training-data.json
+grpc.zip
+grpc.xcframework/
+temp_project/
