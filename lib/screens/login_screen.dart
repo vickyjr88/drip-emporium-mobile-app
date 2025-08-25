@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:drip_emporium/screens/signup_screen.dart';
 import 'package:drip_emporium/services/data_repository.dart';
+import 'package:drip_emporium/screens/profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,7 +37,9 @@ class _LoginScreenState extends State<LoginScreen> {
       // Create/update user document in Firestore
       await _createOrUpdateUserDocument(userCredential.user!);
       
-      Navigator.of(context).pop();
+      Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
       return userCredential;
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -60,7 +63,9 @@ class _LoginScreenState extends State<LoginScreen> {
         // Create/update user document in Firestore
         await _createOrUpdateUserDocument(userCredential.user!);
         
-        Navigator.of(context).pop();
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
       } on FirebaseAuthException catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
