@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:drip_emporium/services/data_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // For DocumentSnapshot
 import 'package:url_launcher/url_launcher.dart'; // New import for launching URLs
+import 'package:drip_emporium/utils/phone_number_utils.dart';
 
 class AdminOrdersScreen extends StatefulWidget {
   const AdminOrdersScreen({super.key});
@@ -73,17 +74,11 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     }
   }
 
-  String _sanitizePhoneNumber(String phoneNumber) {
-    String sanitizedNumber = phoneNumber.replaceAll(RegExp(r'[+\s]'), ''); // Remove '+' and spaces
-    if (sanitizedNumber.startsWith('0')) {
-      sanitizedNumber = '254' + sanitizedNumber.substring(1); // Replace leading '0' with '254'
-    }
-    return sanitizedNumber;
-  }
+  
 
   // Helper function to make a phone call
   Future<void> _makePhoneCall(String phoneNumber) async {
-    final sanitizedNumber = _sanitizePhoneNumber(phoneNumber);
+    final sanitizedNumber = sanitizePhoneNumber(phoneNumber);
     final Uri launchUri = Uri(
       scheme: 'tel',
       path: sanitizedNumber,
@@ -99,7 +94,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
 
   // Helper function to launch WhatsApp
   Future<void> _launchWhatsApp(String phoneNumber) async {
-    final sanitizedNumber = _sanitizePhoneNumber(phoneNumber);
+    final sanitizedNumber = sanitizePhoneNumber(phoneNumber);
     final Uri launchUri = Uri.parse('https://wa.me/$sanitizedNumber');
     if (await canLaunchUrl(launchUri)) {
       await launchUrl(launchUri);

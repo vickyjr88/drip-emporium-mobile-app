@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:drip_emporium/utils/phone_number_utils.dart';
 
 class AllUsersScreen extends StatelessWidget {
   const AllUsersScreen({super.key});
@@ -42,7 +43,7 @@ class AllUsersScreen extends StatelessWidget {
                       const SizedBox(height: 10.0),
                       Text('Email: ${data['email'] ?? 'No email'}'),
                       const SizedBox(height: 5.0),
-                      Text('Mobile: ${_formatPhoneNumber(data['mobileNumber'] ?? 'No mobile number')}'),
+                      Text('Mobile: ${sanitizePhoneNumber(data['mobileNumber'] ?? 'No mobile number')}'),
                       const SizedBox(height: 5.0),
                       Text('Address: ${data['address'] ?? 'No address'}'),
                       const SizedBox(height: 15.0),
@@ -51,7 +52,7 @@ class AllUsersScreen extends StatelessWidget {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.call),
-                            onPressed: () => _launchURL('tel:${_formatPhoneNumber(data['mobileNumber'])}'),
+                            onPressed: () => _launchURL('tel:${sanitizePhoneNumber(data['mobileNumber'])}'),
                           ),
                           IconButton(
                             icon: const Icon(Icons.email),
@@ -59,7 +60,7 @@ class AllUsersScreen extends StatelessWidget {
                           ),
                           IconButton(
                             icon: const Icon(Icons.message),
-                            onPressed: () => _launchURL('https://wa.me/${_formatPhoneNumber(data['mobileNumber'])}'),
+                            onPressed: () => _launchURL('https://wa.me/${sanitizePhoneNumber(data['mobileNumber'])}'),
                           ),
                         ],
                       ),
@@ -82,13 +83,5 @@ class AllUsersScreen extends StatelessWidget {
     }
   }
 
-  String _formatPhoneNumber(String phoneNumber) {
-    phoneNumber = phoneNumber.replaceAll(' ', '');
-    if (phoneNumber.startsWith('0')) {
-      phoneNumber = '254${phoneNumber.substring(1)}';
-    } else if (phoneNumber.startsWith('+')) {
-      phoneNumber = phoneNumber.substring(1);
-    }
-    return phoneNumber;
-  }
+  
 }
