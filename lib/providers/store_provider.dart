@@ -13,14 +13,15 @@ class StoreProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   StoreProvider() {
-    _fetchStores();
+    fetchStores();
   }
 
-  Future<void> _fetchStores() async {
+  Future<void> fetchStores() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
+      await _dataRepository.initDatabase();
       _stores = await _dataRepository.getStores();
     } catch (e) {
       _errorMessage = 'Failed to fetch stores: ${e.toString()}';
@@ -36,7 +37,7 @@ class StoreProvider with ChangeNotifier {
     notifyListeners();
     try {
       await _dataRepository.addStore(store);
-      await _fetchStores(); // Refresh list after adding
+      await fetchStores(); // Refresh list after adding
     } catch (e) {
       _errorMessage = 'Failed to add store: ${e.toString()}';
     } finally {
@@ -51,7 +52,7 @@ class StoreProvider with ChangeNotifier {
     notifyListeners();
     try {
       await _dataRepository.updateStore(store);
-      await _fetchStores(); // Refresh list after updating
+      await fetchStores(); // Refresh list after updating
     } catch (e) {
       _errorMessage = 'Failed to update store: ${e.toString()}';
     } finally {
@@ -66,7 +67,7 @@ class StoreProvider with ChangeNotifier {
     notifyListeners();
     try {
       await _dataRepository.deleteStore(storeId);
-      await _fetchStores(); // Refresh list after deleting
+      await fetchStores(); // Refresh list after deleting
     } catch (e) {
       _errorMessage = 'Failed to delete store: ${e.toString()}';
     } finally {
