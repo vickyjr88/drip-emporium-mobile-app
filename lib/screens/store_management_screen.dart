@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/store_provider.dart';
 import '../models/store.dart';
+import '../screens/store_details_screen.dart';
 
 class StoreManagementScreen extends StatefulWidget {
   const StoreManagementScreen({super.key});
@@ -199,6 +200,13 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                 child: ListTile(
                   title: Text(store.name),
                   subtitle: Text(store.address),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => StoreDetailsScreen(store: store),
+                      ),
+                    );
+                  },
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

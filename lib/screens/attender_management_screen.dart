@@ -1,3 +1,4 @@
+import 'package:drip_emporium/screens/attender_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/attender_provider.dart';
@@ -258,6 +259,14 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
                 child: ListTile(
                   title: Text(attender.name),
                   subtitle: Text(attender.email),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AttenderDetailsScreen(attender: attender),
+                      ),
+                    );
+                  },
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
