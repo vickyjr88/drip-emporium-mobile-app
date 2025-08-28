@@ -1,4 +1,8 @@
+import 'package:drip_emporium/models/store.dart';
+import 'package:drip_emporium/providers/store_provider.dart';
+import 'package:drip_emporium/screens/store_details_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:drip_emporium/utils/phone_number_utils.dart';
 import '../models/attender.dart';
@@ -43,6 +47,65 @@ class AttenderDetailsScreen extends StatelessWidget {
     }
   }
 
+  void _showStoreDialog(BuildContext context, Store store) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(store.name),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Address: ${store.address}'),
+              const SizedBox(height: 8),
+              Text('Phone: ${store.phoneNumber}'),
+              const SizedBox(height: 8),
+              Text('Email: ${store.email}'),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.phone, size: 30),
+                    onPressed: () => _makePhoneCall(store.phoneNumber),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.message, size: 30, color: Colors.green),
+                    onPressed: () => _launchWhatsApp(store.phoneNumber),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.email, size: 30),
+                    onPressed: () => _sendEmail(store.email),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Close'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => StoreDetailsScreen(store: store),
+                ),
+              );
+            },
+            child: const Text('View Full Details'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,7 +118,7 @@ class AttenderDetailsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Name: ${attender.name}',
+              '${attender.name}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -74,9 +137,29 @@ class AttenderDetailsScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Store ID: ${attender.storeId}',
-              style: const TextStyle(fontSize: 16),
+            Consumer<StoreProvider>(
+              builder: (context, storeProvider, child) {
+                final store = storeProvider.stores.firstWhere(
+                  (s) => s.id == attender.storeId,
+                  orElse: () => Store(
+                    id: '',
+                    name: 'Unknown Store',
+                    address: '',
+                    phoneNumber: '',
+                    email: '',
+                  ),
+                );
+                return ListTile(
+                  title: const Text('Store'),
+                  subtitle: Text(store.name),
+                  trailing: const Icon(Icons.info_outline),
+                  onTap: () {
+                    if (store.id.isNotEmpty) {
+                      _showStoreDialog(context, store);
+                    }
+                  },
+                );
+              },
             ),
             const SizedBox(height: 20),
             Row(
