@@ -22,9 +22,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Favorites'),
-      ),
+      appBar: AppBar(title: const Text('My Favorites')),
       body: Consumer2<FavoritesProvider, ProductsProvider>(
         builder: (context, favoritesProvider, productsProvider, child) {
           if (productsProvider.isLoading) {
@@ -36,12 +34,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           }
 
           // Filter products to show only favorites
-          final favoriteProducts = productsProvider.products.where((product) {
-            return favoritesProvider.isFavorite(product['id']);
-          }).toList();
+          final favoriteProducts =
+              productsProvider.products.where((product) {
+                return favoritesProvider.isFavorite(product['id']);
+              }).toList();
 
           if (favoriteProducts.isEmpty) {
-            return const Center(child: Text('No favorite products found in your catalog.'));
+            return const Center(
+              child: Text('No favorite products found in your catalog.'),
+            );
           }
 
           return ListView.builder(
@@ -59,8 +60,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       child: CachedNetworkImage(
                         imageUrl: product['imageUrl'],
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                        errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image)),
+                        placeholder:
+                            (context, url) => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                        errorWidget:
+                            (context, url, error) =>
+                                const Center(child: Icon(Icons.broken_image)),
                       ),
                     ),
                   ),
@@ -72,7 +78,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       favoritesProvider.removeFavorite(product['id']);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('${product['name']} removed from favorites.'),
+                          content: Text(
+                            '${product['name']} removed from favorites.',
+                          ),
                           duration: const Duration(seconds: 1),
                         ),
                       );

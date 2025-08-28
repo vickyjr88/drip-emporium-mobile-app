@@ -1,4 +1,3 @@
-
 String sanitizePhoneNumber(String phoneNumber) {
   phoneNumber = phoneNumber.replaceAll(' ', '');
   if (phoneNumber.startsWith('0')) {

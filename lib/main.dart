@@ -24,22 +24,30 @@ import 'package:drip_emporium/screens/settings_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Initialize Firebase
-  
+
   final dataRepository = DataRepository();
   await dataRepository.initDatabase();
   runApp(
-    MultiProvider( // Use MultiProvider for multiple providers
+    MultiProvider(
+      // Use MultiProvider for multiple providers
       providers: [
-        ChangeNotifierProvider(create: (context) => ProductsProvider(dataRepository)),
-        ChangeNotifierProvider(create: (context) => CartProvider()), // New provider
-        ChangeNotifierProvider(create: (context) => FavoritesProvider()), // New provider
+        ChangeNotifierProvider(
+          create: (context) => ProductsProvider(dataRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => CartProvider(),
+        ), // New provider
+        ChangeNotifierProvider(
+          create: (context) => FavoritesProvider(),
+        ), // New provider
       ],
       child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatefulWidget { // Changed to StatefulWidget
+class MyApp extends StatefulWidget {
+  // Changed to StatefulWidget
   const MyApp({super.key});
 
   @override
@@ -55,7 +63,9 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _paymentService = PaymentService(); // Initialize PaymentService
-    _paymentService.initializePaystack(AppConfig.paystackPublicKey); // Use from AppConfig
+    _paymentService.initializePaystack(
+      AppConfig.paystackPublicKey,
+    ); // Use from AppConfig
     _initAppLinks();
     _checkAndCreateUserDocument(); // Check if user is logged in and create/update document
   }
@@ -100,12 +110,15 @@ class _MyAppState extends State<MyApp> {
     }
 
     // Listen for incoming links while the app is running
-    _linkSubscription = _appLinks.uriLinkStream.listen((Uri uri) {
-      _handleDeepLink(uri.toString());
-    }, onError: (err) {
-      // Handle error
-      print('Error receiving deep link: $err');
-    });
+    _linkSubscription = _appLinks.uriLinkStream.listen(
+      (Uri uri) {
+        _handleDeepLink(uri.toString());
+      },
+      onError: (err) {
+        // Handle error
+        print('Error receiving deep link: $err');
+      },
+    );
   }
 
   void _handleDeepLink(String link) async {
@@ -115,16 +128,22 @@ class _MyAppState extends State<MyApp> {
       // Handle payment callback
       final reference = uri.queryParameters['reference'] ?? '';
       final status = uri.queryParameters['status'] ?? '';
-      
+
       print('Payment callback received: reference=$reference, status=$status');
-      
+
       if (reference.isNotEmpty) {
         // Use the payment service to handle the callback
         if (status == 'success') {
-          _paymentService.updateOrderStatus(reference, 'verifying'); // Update order status to verifying
+          _paymentService.updateOrderStatus(
+            reference,
+            'verifying',
+          ); // Update order status to verifying
           final verified = await PaymentService.verifyPayment(reference);
           if (verified) {
-            _paymentService.updateOrderStatus(reference, 'successful'); // Update order status
+            _paymentService.updateOrderStatus(
+              reference,
+              'successful',
+            ); // Update order status
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Payment Verified Successfully via Deep Link!'),
@@ -135,16 +154,24 @@ class _MyAppState extends State<MyApp> {
             cart.clearCart();
             Navigator.of(context).popUntil((route) => route.isFirst);
           } else {
-            _paymentService.updateOrderStatus(reference, 'failed'); // Update order status
+            _paymentService.updateOrderStatus(
+              reference,
+              'failed',
+            ); // Update order status
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Deep link payment verification failed. Please contact support.'),
+                content: Text(
+                  'Deep link payment verification failed. Please contact support.',
+                ),
                 backgroundColor: Colors.orange,
               ),
             );
           }
         } else {
-          _paymentService.updateOrderStatus(reference, 'failed'); // Update order status
+          _paymentService.updateOrderStatus(
+            reference,
+            'failed',
+          ); // Update order status
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Deep link payment was cancelled or failed'),
@@ -177,7 +204,10 @@ class _MyAppState extends State<MyApp> {
 
 class HomeScreen extends StatefulWidget {
   final PaymentService paymentService; // New field
-  const HomeScreen({super.key, required this.paymentService}); // Updated constructor
+  const HomeScreen({
+    super.key,
+    required this.paymentService,
+  }); // Updated constructor
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -200,7 +230,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onSearchChanged() {
-    Provider.of<ProductsProvider>(context, listen: false).setSearchQuery(_searchController.text);
+    Provider.of<ProductsProvider>(
+      context,
+      listen: false,
+    ).setSearchQuery(_searchController.text);
   }
 
   @override
@@ -217,7 +250,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
                   );
                 },
               );
@@ -232,7 +267,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => CartScreen(paymentService: widget.paymentService)), // Pass paymentService
+                        MaterialPageRoute(
+                          builder:
+                              (context) => CartScreen(
+                                paymentService: widget.paymentService,
+                              ),
+                        ), // Pass paymentService
                       );
                     },
                   ),
@@ -266,7 +306,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight), // Height of the search bar
+          preferredSize: const Size.fromHeight(
+            kToolbarHeight,
+          ), // Height of the search bar
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -280,7 +322,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 filled: true,
                 fillColor: Colors.white,
                 prefixIcon: const Icon(Icons.search),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 0,
+                  horizontal: 10,
+                ),
               ),
             ),
           ),
@@ -293,7 +338,9 @@ class _HomeScreenState extends State<HomeScreen> {
               if (productsProvider.isLoading) {
                 return const Center(child: CircularProgressIndicator());
               } else if (productsProvider.errorMessage != null) {
-                return Center(child: Text('Error: ${productsProvider.errorMessage}'));
+                return Center(
+                  child: Text('Error: ${productsProvider.errorMessage}'),
+                );
               } else if (productsProvider.allStores.isEmpty) {
                 return const SizedBox.shrink(); // Hide if no stores
               } else {
@@ -303,20 +350,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Row(
-                      children: productsProvider.allStores.map((store) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: ChoiceChip(
-                            label: Text(store),
-                            selected: productsProvider.selectedStore == store,
-                            onSelected: (selected) {
-                              if (selected) {
-                                productsProvider.setSelectedStore(store);
-                              }
-                            },
-                          ),
-                        );
-                      }).toList(),
+                      children:
+                          productsProvider.allStores.map((store) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4.0,
+                              ),
+                              child: ChoiceChip(
+                                label: Text(store),
+                                selected:
+                                    productsProvider.selectedStore == store,
+                                onSelected: (selected) {
+                                  if (selected) {
+                                    productsProvider.setSelectedStore(store);
+                                  }
+                                },
+                              ),
+                            );
+                          }).toList(),
                     ),
                   ),
                 );
@@ -329,18 +380,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (productsProvider.isLoading) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (productsProvider.errorMessage != null) {
-                  return Center(child: Text('Error: ${productsProvider.errorMessage}'));
+                  return Center(
+                    child: Text('Error: ${productsProvider.errorMessage}'),
+                  );
                 } else if (productsProvider.products.isEmpty) {
                   return const Center(child: Text('No products found.'));
                 } else {
                   return GridView.builder(
                     padding: const EdgeInsets.all(8.0),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 8.0,
-                      mainAxisSpacing: 8.0,
-                      childAspectRatio: 0.7, // Adjust as needed
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 8.0,
+                          mainAxisSpacing: 8.0,
+                          childAspectRatio: 0.7, // Adjust as needed
+                        ),
                     itemCount: productsProvider.products.length,
                     itemBuilder: (context, index) {
                       final product = productsProvider.products[index];
@@ -349,7 +403,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ProductDetailsScreen(product: product, paymentService: widget.paymentService), // Pass paymentService
+                              builder:
+                                  (context) => ProductDetailsScreen(
+                                    product: product,
+                                    paymentService: widget.paymentService,
+                                  ), // Pass paymentService
                             ),
                           );
                         },
@@ -359,14 +417,24 @@ class _HomeScreenState extends State<HomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: SizedBox( // New SizedBox to enforce square height
-                                  height: 150.0, // Example height for the square
+                                child: SizedBox(
+                                  // New SizedBox to enforce square height
+                                  height:
+                                      150.0, // Example height for the square
                                   child: CachedNetworkImage(
                                     imageUrl: product['imageUrl'],
-                                    fit: BoxFit.cover, // Ensures image covers the square, cropping if necessary
+                                    fit:
+                                        BoxFit
+                                            .cover, // Ensures image covers the square, cropping if necessary
                                     width: double.infinity,
-                                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                                    errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image)),
+                                    placeholder:
+                                        (context, url) => const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                    errorWidget:
+                                        (context, url, error) => const Center(
+                                          child: Icon(Icons.broken_image),
+                                        ),
                                   ),
                                 ),
                               ),
@@ -383,23 +451,39 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       'KES ${product['price'].toStringAsFixed(2)}',
                                       style: TextStyle(
-                                        color: Theme.of(context).colorScheme.primary, // Changed to primary (blue)
+                                        color:
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .primary, // Changed to primary (blue)
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14.0,
                                       ),
                                     ),
-                                    IconButton( // Share icon
-                                      padding: EdgeInsets.zero, // Reduce padding
-                                      icon: Icon(Icons.share, color: Theme.of(context).colorScheme.primary),
+                                    IconButton(
+                                      // Share icon
+                                      padding:
+                                          EdgeInsets.zero, // Reduce padding
+                                      icon: Icon(
+                                        Icons.share,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                      ),
                                       onPressed: () {
-                                        Share.share('Check out this product: ${product['name']} - KES ${product['price'].toStringAsFixed(2)} ${product['link']}');
+                                        Share.share(
+                                          'Check out this product: ${product['name']} - KES ${product['price'].toStringAsFixed(2)} ${product['link']}',
+                                        );
                                       },
                                     ),
                                   ],
@@ -407,54 +491,105 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               Align(
                                 alignment: Alignment.bottomRight,
-                                child: Row( // New Row to contain add-to-cart and share icons
-                                  mainAxisSize: MainAxisSize.max, // To occupy all available space
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround, // Spread evenly
+                                child: Row(
+                                  // New Row to contain add-to-cart and share icons
+                                  mainAxisSize:
+                                      MainAxisSize
+                                          .max, // To occupy all available space
+                                  mainAxisAlignment:
+                                      MainAxisAlignment
+                                          .spaceAround, // Spread evenly
                                   children: [
-                                    IconButton( // Add to cart icon
-                                      padding: EdgeInsets.zero, // Reduce padding
-                                      icon: Icon(Icons.add_shopping_cart, color: Theme.of(context).colorScheme.primary),
+                                    IconButton(
+                                      // Add to cart icon
+                                      padding:
+                                          EdgeInsets.zero, // Reduce padding
+                                      icon: Icon(
+                                        Icons.add_shopping_cart,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                      ),
                                       onPressed: () {
-                                        Provider.of<CartProvider>(context, listen: false).addItem(
+                                        Provider.of<CartProvider>(
+                                          context,
+                                          listen: false,
+                                        ).addItem(
                                           product['id'],
                                           product['name'],
                                           product['price'],
                                           product['imageUrl'],
                                           product['link'],
                                         );
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           SnackBar(
-                                            content: Text('${product['name']} added to cart!'),
-                                            duration: const Duration(seconds: 1),
+                                            content: Text(
+                                              '${product['name']} added to cart!',
+                                            ),
+                                            duration: const Duration(
+                                              seconds: 1,
+                                            ),
                                           ),
                                         );
                                       },
                                     ),
                                     // New Favorite Icon
                                     Consumer<FavoritesProvider>(
-                                      builder: (context, favoritesProvider, child) {
-                                        final isFavorite = favoritesProvider.isFavorite(product['id']);
+                                      builder: (
+                                        context,
+                                        favoritesProvider,
+                                        child,
+                                      ) {
+                                        final isFavorite = favoritesProvider
+                                            .isFavorite(product['id']);
                                         return IconButton(
-                                          padding: EdgeInsets.zero, // Reduce padding
+                                          padding:
+                                              EdgeInsets.zero, // Reduce padding
                                           icon: Icon(
-                                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                                            color: isFavorite ? Colors.red : Theme.of(context).colorScheme.primary,
+                                            isFavorite
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                            color:
+                                                isFavorite
+                                                    ? Colors.red
+                                                    : Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
                                           ),
                                           onPressed: () {
                                             if (isFavorite) {
-                                              favoritesProvider.removeFavorite(product['id']);
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              favoritesProvider.removeFavorite(
+                                                product['id'],
+                                              );
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 SnackBar(
-                                                  content: Text('${product['name']} removed from favorites!'),
-                                                  duration: const Duration(seconds: 1),
+                                                  content: Text(
+                                                    '${product['name']} removed from favorites!',
+                                                  ),
+                                                  duration: const Duration(
+                                                    seconds: 1,
+                                                  ),
                                                 ),
                                               );
                                             } else {
-                                              favoritesProvider.addFavorite(product['id']);
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              favoritesProvider.addFavorite(
+                                                product['id'],
+                                              );
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 SnackBar(
-                                                  content: Text('${product['name']} added to favorites!'),
-                                                  duration: const Duration(seconds: 1),
+                                                  content: Text(
+                                                    '${product['name']} added to favorites!',
+                                                  ),
+                                                  duration: const Duration(
+                                                    seconds: 1,
+                                                  ),
                                                 ),
                                               );
                                             }
@@ -464,22 +599,37 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     // New WhatsApp Icon
                                     IconButton(
-                                      padding: EdgeInsets.zero, // Reduce padding
-                                      icon: Icon(Icons.message, color: Colors.green), // Using message icon and green color
+                                      padding:
+                                          EdgeInsets.zero, // Reduce padding
+                                      icon: Icon(
+                                        Icons.message,
+                                        color: Colors.green,
+                                      ), // Using message icon and green color
                                       onPressed: () async {
-                                        final phoneNumber = '254113206481'; // Replace with your WhatsApp number
-                                        final message = 'Hello, I would like to order the following product:\n' + 
-                                            'Product: ${product['name']}\n' + 
-                                            'Price: KES ${product['price'].toStringAsFixed(2)}\n' + 
+                                        final phoneNumber =
+                                            '254113206481'; // Replace with your WhatsApp number
+                                        final message =
+                                            'Hello, I would like to order the following product:\n' +
+                                            'Product: ${product['name']}\n' +
+                                            'Price: KES ${product['price'].toStringAsFixed(2)}\n' +
                                             'Link: ${product['link']}';
-                                        final whatsappUrl = 'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
+                                        final whatsappUrl =
+                                            'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
 
-                                        if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
-                                          await launchUrl(Uri.parse(whatsappUrl));
+                                        if (await canLaunchUrl(
+                                          Uri.parse(whatsappUrl),
+                                        )) {
+                                          await launchUrl(
+                                            Uri.parse(whatsappUrl),
+                                          );
                                         } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
                                             const SnackBar(
-                                              content: Text('Could not launch WhatsApp. Please ensure it is installed.'),
+                                              content: Text(
+                                                'Could not launch WhatsApp. Please ensure it is installed.',
+                                              ),
                                               backgroundColor: Colors.red,
                                             ),
                                           );

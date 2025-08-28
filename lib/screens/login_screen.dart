@@ -27,19 +27,22 @@ class _LoginScreenState extends State<LoginScreen> {
         // The user canceled the sign-in
         return null;
       }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
-      
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
+
       // Create/update user document in Firestore
       await _createOrUpdateUserDocument(userCredential.user!);
-      
+
       Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-          );
+        MaterialPageRoute(builder: (context) => const ProfileScreen()),
+      );
       return userCredential;
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -59,13 +62,13 @@ class _LoginScreenState extends State<LoginScreen> {
           email: _emailController.text,
           password: _passwordController.text,
         );
-        
+
         // Create/update user document in Firestore
         await _createOrUpdateUserDocument(userCredential.user!);
-        
+
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-          );
+          MaterialPageRoute(builder: (context) => const ProfileScreen()),
+        );
       } on FirebaseAuthException catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -96,9 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
+      appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -157,7 +158,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
                   ),
-                  icon: Image.asset('assets/images/google_logo.png', height: 24.0),
+                  icon: Image.asset(
+                    'assets/images/google_logo.png',
+                    height: 24.0,
+                  ),
                   label: const Text('Sign In with Google'),
                 ),
               ),
@@ -165,7 +169,9 @@ class _LoginScreenState extends State<LoginScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const ForgotPasswordScreen(),
+                    ),
                   );
                 },
                 child: const Text('Forgot Password?'),
@@ -174,7 +180,9 @@ class _LoginScreenState extends State<LoginScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const SignUpScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const SignUpScreen(),
+                    ),
                   );
                 },
                 child: const Text('Don\'t have an account? Sign up'),

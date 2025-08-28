@@ -44,7 +44,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
     try {
       print('${currentUser!.uid}');
-      final doc = await _firestore.collection('superAdmins').doc(currentUser!.uid).get();
+      final doc =
+          await _firestore
+              .collection('superAdmins')
+              .doc(currentUser!.uid)
+              .get();
       print(doc);
       setState(() {
         _isSuperAdmin = doc.exists;
@@ -64,7 +68,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _emailController.text = currentUser!.email ?? '';
 
     try {
-      final doc = await _firestore.collection('users').doc(currentUser!.uid).get();
+      final doc =
+          await _firestore.collection('users').doc(currentUser!.uid).get();
       if (doc.exists) {
         _mobileController.text = doc.data()?['mobileNumber'] ?? '';
         _addressController.text = doc.data()?['address'] ?? '';
@@ -73,7 +78,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print('Error loading user profile: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Failed to load profile. Please check your internet connection.'),
+          content: Text(
+            'Failed to load profile. Please check your internet connection.',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -94,7 +101,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'mobileNumber': _mobileController.text,
           'address': _addressController.text,
           'email': currentUser!.email, // Store email for reference
-          'displayName': currentUser!.displayName, // Store display name for reference
+          'displayName':
+              currentUser!.displayName, // Store display name for reference
         }, SetOptions(merge: true)); // Merge to avoid overwriting other fields
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -104,7 +112,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         print('Error saving user profile: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Failed to save profile. Please check your internet connection.'),
+            content: Text(
+              'Failed to save profile. Please check your internet connection.',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -196,7 +206,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const OrdersScreen(),
+                    ),
                   );
                 },
               ),
@@ -206,7 +218,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const FavoritesScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const FavoritesScreen(),
+                    ),
                   );
                 },
               ),
@@ -218,7 +232,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const AdminOrdersScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const AdminOrdersScreen(),
+                      ),
                     );
                   },
                 ),
@@ -229,7 +245,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const AllUsersScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const AllUsersScreen(),
+                      ),
                     );
                   },
                 ),

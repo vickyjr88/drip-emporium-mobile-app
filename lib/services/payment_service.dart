@@ -10,12 +10,15 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // New import
 
 class PaymentService {
   final Paystack _paystack = Paystack(); // Initialize Paystack instance
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Initialize Firestore
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance; // Initialize Firestore
 
   // Method to update order status in Firestore
   Future<void> updateOrderStatus(String orderId, String status) async {
     try {
-      await _firestore.collection('orders').doc(orderId).update({'status': status});
+      await _firestore.collection('orders').doc(orderId).update({
+        'status': status,
+      });
       print('Order $orderId status updated to $status');
     } catch (e) {
       print('Error updating order status for $orderId to $status: $e');
@@ -26,7 +29,10 @@ class PaymentService {
   // Method to initialize the SDK
   Future<bool> initializePaystack(String publicKey) async {
     try {
-      final response = await _paystack.initialize(publicKey, true); // allow logging
+      final response = await _paystack.initialize(
+        publicKey,
+        true,
+      ); // allow logging
       if (response) {
         print("Successfully initialised the SDK");
         return true;
@@ -48,7 +54,9 @@ class PaymentService {
         final reference = response.reference;
         print("Payment successful, reference: $reference");
         // Now verify the payment on your server
-        final verified = await verifyPayment(reference!); // reference is non-null on success
+        final verified = await verifyPayment(
+          reference!,
+        ); // reference is non-null on success
 
         if (verified) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -63,7 +71,9 @@ class PaymentService {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Payment verification failed. Please contact support.'),
+              content: Text(
+                'Payment verification failed. Please contact support.',
+              ),
               backgroundColor: Colors.orange,
             ),
           );
@@ -99,7 +109,8 @@ class PaymentService {
   // This method remains largely the same for server-side verification
   static Future<bool> verifyPayment(String reference) async {
     try {
-      final String verifyUrl = 'https://api.paystack.co/transaction/verify/$reference';
+      final String verifyUrl =
+          'https://api.paystack.co/transaction/verify/$reference';
 
       // IMPORTANT: The secret key should NOT be exposed on the client-side.
       // This verification should ideally happen on your backend server.
@@ -107,7 +118,8 @@ class PaymentService {
       final response = await http.get(
         Uri.parse(verifyUrl),
         headers: {
-          'Authorization': 'Bearer ${AppConfig.paystackSecretKey}', // Use from AppConfig
+          'Authorization':
+              'Bearer ${AppConfig.paystackSecretKey}', // Use from AppConfig
         },
       );
 

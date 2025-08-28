@@ -23,16 +23,17 @@ class _AuthScreenState extends State<AuthScreen> {
         // The user canceled the sign-in
         return null;
       }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
       final userCredential = await _auth.signInWithCredential(credential);
-      
+
       // Create/update user document in Firestore
       await _createOrUpdateUserDocument(userCredential.user!);
-      
+
       return userCredential;
     } catch (e) {
       print('Error signing in with Google: $e');
@@ -62,9 +63,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Authentication'),
-      ),
+      appBar: AppBar(title: const Text('Authentication')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -92,13 +91,20 @@ class _AuthScreenState extends State<AuthScreen> {
                 UserCredential? userCredential = await _signInWithGoogle();
                 if (userCredential != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Signed in as ${userCredential.user!.displayName}')),
+                    SnackBar(
+                      content: Text(
+                        'Signed in as ${userCredential.user!.displayName}',
+                      ),
+                    ),
                   );
                   // Navigate to home screen or dashboard
                   // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen()));
                 }
               },
-              icon: Image.asset('assets/images/google_logo.png', height: 24.0), // Placeholder for Google logo
+              icon: Image.asset(
+                'assets/images/google_logo.png',
+                height: 24.0,
+              ), // Placeholder for Google logo
               label: const Text('Sign In with Google'),
             ),
           ],

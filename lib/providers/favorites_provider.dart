@@ -26,12 +26,14 @@ class FavoritesProvider with ChangeNotifier {
     if (user == null) return;
 
     try {
-      final querySnapshot = await _firestore
-          .collection('favorites')
-          .where('userId', isEqualTo: user.uid)
-          .get();
+      final querySnapshot =
+          await _firestore
+              .collection('favorites')
+              .where('userId', isEqualTo: user.uid)
+              .get();
 
-      _favoriteProductIds = querySnapshot.docs.map((doc) => doc['productId'] as String).toSet();
+      _favoriteProductIds =
+          querySnapshot.docs.map((doc) => doc['productId'] as String).toSet();
       notifyListeners();
     } catch (e) {
       print('Error fetching favorites: $e');
@@ -47,11 +49,13 @@ class FavoritesProvider with ChangeNotifier {
 
     try {
       // Check if it already exists to prevent duplicates in Firestore
-      final existing = await _firestore.collection('favorites')
-          .where('userId', isEqualTo: user.uid)
-          .where('productId', isEqualTo: productId)
-          .limit(1)
-          .get();
+      final existing =
+          await _firestore
+              .collection('favorites')
+              .where('userId', isEqualTo: user.uid)
+              .where('productId', isEqualTo: productId)
+              .limit(1)
+              .get();
 
       if (existing.docs.isEmpty) {
         await _firestore.collection('favorites').add({
@@ -75,14 +79,19 @@ class FavoritesProvider with ChangeNotifier {
     if (!_favoriteProductIds.contains(productId)) return; // Not favorited
 
     try {
-      final querySnapshot = await _firestore.collection('favorites')
-          .where('userId', isEqualTo: user.uid)
-          .where('productId', isEqualTo: productId)
-          .limit(1)
-          .get();
+      final querySnapshot =
+          await _firestore
+              .collection('favorites')
+              .where('userId', isEqualTo: user.uid)
+              .where('productId', isEqualTo: productId)
+              .limit(1)
+              .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        await _firestore.collection('favorites').doc(querySnapshot.docs.first.id).delete();
+        await _firestore
+            .collection('favorites')
+            .doc(querySnapshot.docs.first.id)
+            .delete();
         _favoriteProductIds.remove(productId);
         notifyListeners();
       }

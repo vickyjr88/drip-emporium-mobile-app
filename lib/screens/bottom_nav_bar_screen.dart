@@ -1,4 +1,3 @@
-
 import 'package:drip_emporium/screens/cart_screen.dart';
 import 'package:drip_emporium/screens/profile_screen.dart';
 import 'package:drip_emporium/services/payment_service.dart';
@@ -7,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:drip_emporium/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:drip_emporium/screens/login_screen.dart';
-
+import '../screens/admin_dashboard_screen.dart';
 
 class BottomNavBarScreen extends StatefulWidget {
   final PaymentService paymentService;
@@ -28,14 +27,17 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
     _pages = <Widget>[
       HomeScreen(paymentService: widget.paymentService),
       CartScreen(paymentService: widget.paymentService),
-      const ProfileScreen(),
+      ProfileScreen(),
+      AdminDashboardScreen(), // New Admin Dashboard Screen
     ];
   }
 
   void _onItemTapped(int index) async {
-    if (index == 1) { // Index 1 is the "Message" item
+    if (index == 1) {
+      // Index 1 is the "Message" item
       _launchWhatsApp();
-    } else if (index == 3) { // Index 3 is the "Account" item
+    } else if (index == 3) {
+      // Index 3 is the "Account" item (now ProfileScreen)
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         setState(() {
@@ -47,11 +49,16 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
           MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       }
+    } else if (index == 4) {
+      // New Admin tab at index 4
+      setState(() {
+        _selectedIndex = 3; // AdminDashboardScreen is at index 3 in _pages
+      });
     } else {
       setState(() {
         // Adjust index for the pages list
         if (index > 1) {
-          _selectedIndex = index -1;
+          _selectedIndex = index - 1;
         } else {
           _selectedIndex = index;
         }
@@ -76,9 +83,7 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
                   text: 'Drip Emporium',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                TextSpan(
-                  text: ' on WhatsApp?',
-                ),
+                TextSpan(text: ' on WhatsApp?'),
               ],
             ),
           ),
@@ -102,7 +107,9 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Could not launch WhatsApp. Please ensure it is installed.'),
+            content: Text(
+              'Could not launch WhatsApp. Please ensure it is installed.',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -116,14 +123,8 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
       body: _pages.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message),
-            label: 'Message',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Message'),
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_cart),
             label: 'Cart',
@@ -131,6 +132,10 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle),
             label: 'Account',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.admin_panel_settings),
+            label: 'Admin',
           ),
         ],
         currentIndex: _selectedIndex < 1 ? _selectedIndex : _selectedIndex + 1,

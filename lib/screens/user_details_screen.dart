@@ -2,13 +2,14 @@ import 'package:drip_emporium/services/data_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // New import
 import 'package:google_sign_in/google_sign_in.dart'; // New import
- // New import
+// New import
 import 'package:drip_emporium/screens/login_screen.dart'; // New import
 import 'package:drip_emporium/screens/signup_screen.dart'; // New import
 import 'dart:async'; // New import
 
 class UserDetailsScreen extends StatefulWidget {
-  final Function(String email, String name, String mobileNumber, String address) onProceedToPayment;
+  final Function(String email, String name, String mobileNumber, String address)
+  onProceedToPayment;
 
   const UserDetailsScreen({super.key, required this.onProceedToPayment});
 
@@ -78,12 +79,15 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         // The user canceled the sign-in
         return null;
       }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
       _populateFields(); // Populate fields after successful sign-in
       return userCredential;
     } catch (e) {
@@ -133,7 +137,8 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: ListView( // Changed to ListView to allow scrolling
+          child: ListView(
+            // Changed to ListView to allow scrolling
             children: [
               TextFormField(
                 controller: _emailController, // Use controller
@@ -146,7 +151,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your email';
                   }
-                  if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value)) {
+                  if (!RegExp(
+                    r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+                  ).hasMatch(value)) {
                     return 'Please enter a valid email address';
                   }
                   return null;
@@ -202,7 +209,12 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    widget.onProceedToPayment(_emailController.text, _nameController.text, _mobileController.text, _addressController.text);
+                    widget.onProceedToPayment(
+                      _emailController.text,
+                      _nameController.text,
+                      _mobileController.text,
+                      _addressController.text,
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -215,7 +227,8 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                 ),
               ),
               // Show Sign Out button if user is logged in
-              if (false && _auth.currentUser != null) ...[ // Temporarily hide
+              if (false && _auth.currentUser != null) ...[
+                // Temporarily hide
                 const SizedBox(height: 16.0), // Spacing between buttons
                 ElevatedButton(
                   onPressed: () async {
@@ -228,7 +241,10 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                     setState(() {}); // Rebuild to hide sign-in options
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.secondary, // Different color for sign out
+                    backgroundColor:
+                        Theme.of(
+                          context,
+                        ).colorScheme.secondary, // Different color for sign out
                     padding: const EdgeInsets.symmetric(vertical: 15.0),
                   ),
                   child: const Text(
@@ -247,44 +263,69 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                     children: [
                       const Text('Or sign in to pre-fill details:'),
                       const SizedBox(height: 16),
-                      SizedBox( // New SizedBox for full width
+                      SizedBox(
+                        // New SizedBox for full width
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () async {
-                            UserCredential? userCredential = await _signInWithGoogle();
+                            UserCredential? userCredential =
+                                await _signInWithGoogle();
                             if (userCredential != null) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Signed in as ${userCredential.user!.displayName ?? userCredential.user!.email}')),
+                                SnackBar(
+                                  content: Text(
+                                    'Signed in as ${userCredential.user!.displayName ?? userCredential.user!.email}',
+                                  ),
+                                ),
                               );
                               _populateFields(); // Populate fields after successful sign-in
-                              setState(() {}); // Rebuild to hide sign-in options
+                              setState(
+                                () {},
+                              ); // Rebuild to hide sign-in options
                             }
                           },
-                          icon: Image.asset('assets/images/google_logo.png', height: 24.0), // Placeholder for Google logo
+                          icon: Image.asset(
+                            'assets/images/google_logo.png',
+                            height: 24.0,
+                          ), // Placeholder for Google logo
                           label: const Text('Sign In with Google'),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      SizedBox( // New SizedBox for full width
+                      SizedBox(
+                        // New SizedBox for full width
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const LoginScreen()),
-                            ).then((_) => _populateFields()); // Populate fields when returning from login
+                            Navigator.of(context)
+                                .push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const LoginScreen(),
+                                  ),
+                                )
+                                .then(
+                                  (_) => _populateFields(),
+                                ); // Populate fields when returning from login
                             setState(() {}); // Rebuild to hide sign-in options
                           },
                           child: const Text('Sign In with Email'),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      SizedBox( // New SizedBox for full width
+                      SizedBox(
+                        // New SizedBox for full width
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const SignUpScreen()),
-                            ).then((_) => _populateFields()); // Populate fields when returning from signup
+                            Navigator.of(context)
+                                .push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const SignUpScreen(),
+                                  ),
+                                )
+                                .then(
+                                  (_) => _populateFields(),
+                                ); // Populate fields when returning from signup
                             setState(() {}); // Rebuild to hide sign-in options
                           },
                           child: const Text('Sign Up with Email'),

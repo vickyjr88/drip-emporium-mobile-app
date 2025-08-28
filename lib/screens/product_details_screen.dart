@@ -14,7 +14,11 @@ class ProductDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> product;
   final PaymentService paymentService; // New field
 
-  const ProductDetailsScreen({super.key, required this.product, required this.paymentService}); // Updated constructor
+  const ProductDetailsScreen({
+    super.key,
+    required this.product,
+    required this.paymentService,
+  }); // Updated constructor
 
   @override
   Widget build(BuildContext context) {
@@ -22,13 +26,17 @@ class ProductDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(product['name']),
         actions: [
-          IconButton( // Share icon
+          IconButton(
+            // Share icon
             icon: const Icon(Icons.share),
             onPressed: () {
-              Share.share('Check out this product: ${product['name']} - KES ${product['price'].toStringAsFixed(2)} ${product['link'] ?? ''}');
+              Share.share(
+                'Check out this product: ${product['name']} - KES ${product['price'].toStringAsFixed(2)} ${product['link'] ?? ''}',
+              );
             },
           ),
-          Consumer<CartProvider>( // Consumer for cart badge
+          Consumer<CartProvider>(
+            // Consumer for cart badge
             builder: (context, cart, child) {
               return Stack(
                 children: [
@@ -37,7 +45,11 @@ class ProductDetailsScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => CartScreen(paymentService: paymentService)),
+                        MaterialPageRoute(
+                          builder:
+                              (context) =>
+                                  CartScreen(paymentService: paymentService),
+                        ),
                       );
                     },
                   ),
@@ -84,29 +96,37 @@ class ProductDetailsScreen extends StatelessWidget {
                 aspectRatio: 16 / 9,
                 viewportFraction: 0.8,
               ),
-              items: [product['imageUrl']].map((i) {
-                return Builder(
-                  builder: (BuildContext context) {
-                    return Container(
-                      width: MediaQuery.of(context).size.width,
-                      margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                      decoration: const BoxDecoration(
-                        color: Colors.grey,
-                      ),
-                      child: SizedBox( // New SizedBox to enforce square
-                        width: 200.0, // Example width
-                        height: 200.0, // Example height
-                        child: CachedNetworkImage(
-                          imageUrl: i,
-                          fit: BoxFit.cover, // Ensures image covers the square, cropping if necessary
-                          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                          errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image, size: 100)),
-                        ),
-                      ),
-                    ); // Closing parenthesis for Container
-                  },
-                );
-              }).toList(),
+              items:
+                  [product['imageUrl']].map((i) {
+                    return Builder(
+                      builder: (BuildContext context) {
+                        return Container(
+                          width: MediaQuery.of(context).size.width,
+                          margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                          decoration: const BoxDecoration(color: Colors.grey),
+                          child: SizedBox(
+                            // New SizedBox to enforce square
+                            width: 200.0, // Example width
+                            height: 200.0, // Example height
+                            child: CachedNetworkImage(
+                              imageUrl: i,
+                              fit:
+                                  BoxFit
+                                      .cover, // Ensures image covers the square, cropping if necessary
+                              placeholder:
+                                  (context, url) => const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                              errorWidget:
+                                  (context, url, error) => const Center(
+                                    child: Icon(Icons.broken_image, size: 100),
+                                  ),
+                            ),
+                          ),
+                        ); // Closing parenthesis for Container
+                      },
+                    );
+                  }).toList(),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -126,7 +146,10 @@ class ProductDetailsScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary, // Changed to primary (blue)
+                      color:
+                          Theme.of(
+                            context,
+                          ).colorScheme.primary, // Changed to primary (blue)
                     ),
                   ),
                   const SizedBox(height: 16.0),
@@ -144,16 +167,22 @@ class ProductDetailsScreen extends StatelessWidget {
                         avatar: const Icon(Icons.share),
                         label: const Text('Share'),
                         onPressed: () {
-                          Share.share('Check out this product: ${product['name']} - KES ${product['price'].toStringAsFixed(2)} ${product['link'] ?? ''}');
+                          Share.share(
+                            'Check out this product: ${product['name']} - KES ${product['price'].toStringAsFixed(2)} ${product['link'] ?? ''}',
+                          );
                         },
                       ),
                       // Favorite Pill
                       Consumer<FavoritesProvider>(
                         builder: (context, favoritesProvider, child) {
-                          final isFavorite = favoritesProvider.isFavorite(product['id']);
+                          final isFavorite = favoritesProvider.isFavorite(
+                            product['id'],
+                          );
                           return ActionChip(
                             avatar: Icon(
-                              isFavorite ? Icons.favorite : Icons.favorite_border,
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
                               color: isFavorite ? Colors.red : null,
                             ),
                             label: Text(isFavorite ? 'Favorited' : 'Favorite'),
@@ -162,7 +191,9 @@ class ProductDetailsScreen extends StatelessWidget {
                                 favoritesProvider.removeFavorite(product['id']);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('${product['name']} removed from favorites!'),
+                                    content: Text(
+                                      '${product['name']} removed from favorites!',
+                                    ),
                                     duration: const Duration(seconds: 1),
                                   ),
                                 );
@@ -170,7 +201,9 @@ class ProductDetailsScreen extends StatelessWidget {
                                 favoritesProvider.addFavorite(product['id']);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('${product['name']} added to favorites!'),
+                                    content: Text(
+                                      '${product['name']} added to favorites!',
+                                    ),
                                     duration: const Duration(seconds: 1),
                                   ),
                                 );
@@ -184,19 +217,24 @@ class ProductDetailsScreen extends StatelessWidget {
                         avatar: const Icon(Icons.message, color: Colors.green),
                         label: const Text('Buy via WhatsApp'),
                         onPressed: () async {
-                          final phoneNumber = '+254712345678'; // Replace with your WhatsApp number
-                          final message = 'Hello, I would like to order the following product:\n'
+                          final phoneNumber =
+                              '+254712345678'; // Replace with your WhatsApp number
+                          final message =
+                              'Hello, I would like to order the following product:\n'
                               'Product: ${product['name']}\n'
                               'Price: KES ${product['price'].toStringAsFixed(2)}\n'
                               'Link: ${product['link']}';
-                          final whatsappUrl = 'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
+                          final whatsappUrl =
+                              'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
 
                           if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
                             await launchUrl(Uri.parse(whatsappUrl));
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Could not launch WhatsApp. Please ensure it is installed.'),
+                                content: Text(
+                                  'Could not launch WhatsApp. Please ensure it is installed.',
+                                ),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -230,7 +268,10 @@ class ProductDetailsScreen extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary, // Changed to primary (blue)
+                    backgroundColor:
+                        Theme.of(
+                          context,
+                        ).colorScheme.primary, // Changed to primary (blue)
                     padding: const EdgeInsets.symmetric(vertical: 15.0),
                   ),
                   child: const Text(

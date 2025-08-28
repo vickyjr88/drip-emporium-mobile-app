@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drip_emporium/providers/cart_provider.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'dart:convert'; // For JSON encoding/decoding
+import '../models/customer.dart';
 import 'dart:io'; // New import
 // import 'package:url_launcher/url_launcher.dart'; // Removed
 import 'package:drip_emporium/screens/user_details_screen.dart';
@@ -13,9 +14,19 @@ import 'package:firebase_auth/firebase_auth.dart'; // New import
 
 class CartScreen extends StatelessWidget {
   final PaymentService paymentService; // New field
-  const CartScreen({super.key, required this.paymentService}); // Updated constructor
+  const CartScreen({
+    super.key,
+    required this.paymentService,
+  }); // Updated constructor
 
-  Future<void> _handleCheckout(BuildContext context, CartProvider cart, String email, String name, String mobileNumber, String address) async {
+  Future<void> _handleCheckout(
+    BuildContext context,
+    CartProvider cart,
+    String email,
+    String name,
+    String mobileNumber,
+    String address,
+  ) async {
     // Show loading dialog
     showDialog(
       context: context,
@@ -35,16 +46,25 @@ class CartScreen extends StatelessWidget {
 
     try {
       // Save order to Firestore before initiating payment
-      final orderId = await _saveOrderToFirestore(context, cart, email, name, mobileNumber, address);
+      final orderId = await _saveOrderToFirestore(
+        context,
+        cart,
+        email,
+        name,
+        mobileNumber,
+        address,
+      );
 
       // Initialize Paystack transaction via API
-      final String paystackUrl = 'https://api.paystack.co/transaction/initialize';
+      final String paystackUrl =
+          'https://api.paystack.co/transaction/initialize';
       final String reference = orderId!; // Use orderId as reference
-      
+
       final response = await http.post(
         Uri.parse(paystackUrl),
         headers: {
-          'Authorization': 'Bearer ${AppConfig.paystackLiveSecretKey}', // Use from AppConfig
+          'Authorization':
+              'Bearer ${AppConfig.paystackLiveSecretKey}', // Use from AppConfig
           'Content-Type': 'application/json',
         },
         body: json.encode({
@@ -52,8 +72,17 @@ class CartScreen extends StatelessWidget {
           'email': email,
           'reference': reference,
           'currency': 'KES',
-          'callback_url': 'dripemporium://payment-callback', // Deep link callback URL
-          'channels': ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer', 'eft'], // All available channels
+          'callback_url':
+              'dripemporium://payment-callback', // Deep link callback URL
+          'channels': [
+            'card',
+            'bank',
+            'ussd',
+            'qr',
+            'mobile_money',
+            'bank_transfer',
+            'eft',
+          ], // All available channels
         }),
       );
 
@@ -61,17 +90,22 @@ class CartScreen extends StatelessWidget {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        
+
         if (data['status'] == true) {
-          final String accessCode = data['data']['access_code']; // Get access_code
-          
+          final String accessCode =
+              data['data']['access_code']; // Get access_code
+
           // Launch the Paystack payment UI using the SDK
-          await paymentService.launchPayment(context, accessCode); // Call SDK method
-          
+          await paymentService.launchPayment(
+            context,
+            accessCode,
+          ); // Call SDK method
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Payment initialization failed: ${data['message']}'),
+              content: Text(
+                'Payment initialization failed: ${data['message']}',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -88,7 +122,9 @@ class CartScreen extends StatelessWidget {
       Navigator.of(context).pop(); // Close loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('No internet connection. Please check your network settings.'),
+          content: Text(
+            'No internet connection. Please check your network settings.',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -96,7 +132,9 @@ class CartScreen extends StatelessWidget {
       Navigator.of(context).pop(); // Close loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('An unexpected error occurred: ${e.toString()}. Please try again.'),
+          content: Text(
+            'An unexpected error occurred: ${e.toString()}. Please try again.',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -104,7 +142,13 @@ class CartScreen extends StatelessWidget {
   }
 
   Future<String?> _saveOrderToFirestore(
-      BuildContext context, CartProvider cart, String email, String name, String mobileNumber, String address) async {
+    BuildContext context,
+    CartProvider cart,
+    String email,
+    String name,
+    String mobileNumber,
+    String address,
+  ) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -124,21 +168,28 @@ class CartScreen extends StatelessWidget {
         'name': name,
         'mobileNumber': mobileNumber,
         'address': address,
-        'items': cart.items.entries.map((entry) {
-          return {
-            'productId': entry.key,
-            'name': entry.value['name'],
-            'price': entry.value['price'],
-            'quantity': entry.value['quantity'],
-            'imageUrl': entry.value['imageUrl'],
-          };
-        }).toList(),
+        'items':
+            cart.items.entries.map((entry) {
+              return {
+                'productId': entry.key,
+                'name': entry.value['name'],
+                'price': entry.value['price'],
+                'quantity': entry.value['quantity'],
+                'imageUrl': entry.value['imageUrl'],
+              };
+            }).toList(),
         'totalAmount': cart.totalAmount,
+        'customerTypeAtOrder': cart.customerType.toString().split('.').last,
+        'discountApplied': cart.discountPercentage,
+        'bargainPrice': cart.bargainAmount,
+        'finalPrice': cart.finalPrice,
         'timestamp': FieldValue.serverTimestamp(),
         'status': 'initiated', // Initial status
       };
 
-      final docRef = await FirebaseFirestore.instance.collection('orders').add(orderData);
+      final docRef = await FirebaseFirestore.instance
+          .collection('orders')
+          .add(orderData);
       print('Order saved to Firestore with ID: ${docRef.id}');
       return docRef.id;
     } catch (e) {
@@ -147,137 +198,257 @@ class CartScreen extends StatelessWidget {
     }
   }
 
-  
-
-
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Your Cart'),
-      ),
-      body: cart.items.isEmpty
-          ? const Center(
-              child: Text('Your cart is empty.'),
-            )
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: cart.items.length,
-                    itemBuilder: (context, index) {
-                      final productId = cart.items.keys.elementAt(index);
-                      final item = cart.items[productId]!;
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ListTile(
-                            leading: SizedBox(
-                              width: 60.0, // Example width for the square
-                              height: 60.0, // Example height for the square
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8.0), // Optional: for rounded corners
-                                child: Image(
-                                  image: NetworkImage(item['imageUrl']),
-                                  fit: BoxFit.cover, // Ensures image covers the square, cropping if necessary
+      appBar: AppBar(title: const Text('Your Cart')),
+      body:
+          cart.items.isEmpty
+              ? const Center(child: Text('Your cart is empty.'))
+              : Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: cart.items.length,
+                      itemBuilder: (context, index) {
+                        final productId = cart.items.keys.elementAt(index);
+                        final item = cart.items[productId]!;
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 15,
+                            vertical: 4,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListTile(
+                              leading: SizedBox(
+                                width: 60.0, // Example width for the square
+                                height: 60.0, // Example height for the square
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    8.0,
+                                  ), // Optional: for rounded corners
+                                  child: Image(
+                                    image: NetworkImage(item['imageUrl']),
+                                    fit:
+                                        BoxFit
+                                            .cover, // Ensures image covers the square, cropping if necessary
+                                  ),
                                 ),
                               ),
-                            ),
-                            title: Text(item['name']),
-                            subtitle: Row( // New Row for quantity controls
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.remove),
-                                  onPressed: () {
-                                    cart.decreaseItemQuantity(productId);
-                                  },
-                                ),
-                                Text('${item['quantity']}'),
-                                IconButton(
-                                  icon: const Icon(Icons.add),
-                                  onPressed: () {
-                                    cart.increaseItemQuantity(productId);
-                                  },
-                                ),
-                                const Spacer(), // Pushes price to the right
-                                Text('KES ${(item['price'] * item['quantity']).toStringAsFixed(2)}'), // Display total price for item
-                              ],
-                            ),
-                            trailing: IconButton( // Delete button remains
-                              icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                cart.removeItem(productId);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('${item['name']} removed from cart!'),
-                                    duration: const Duration(seconds: 1),
+                              title: Text(item['name']),
+                              subtitle: Row(
+                                // New Row for quantity controls
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.remove),
+                                    onPressed: () {
+                                      cart.decreaseItemQuantity(productId);
+                                    },
                                   ),
-                                );
-                              },
-                            ),
-                          ), // This closes the ListTile
-                        ),
-                      );
-                    },
+                                  Text('${item['quantity']}'),
+                                  IconButton(
+                                    icon: const Icon(Icons.add),
+                                    onPressed: () {
+                                      cart.increaseItemQuantity(productId);
+                                    },
+                                  ),
+                                  const Spacer(), // Pushes price to the right
+                                  Text(
+                                    'KES ${(item['price'] * item['quantity']).toStringAsFixed(2)}',
+                                  ), // Display total price for item
+                                ],
+                              ),
+                              trailing: IconButton(
+                                // Delete button remains
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  cart.removeItem(productId);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '${item['name']} removed from cart!',
+                                      ),
+                                      duration: const Duration(seconds: 1),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ), // This closes the ListTile
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-                Card(
-                  margin: const EdgeInsets.all(15),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                  // Customer Type Selection
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 4.0,
+                    ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Total:',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        const Text('Customer Type:'),
+                        const SizedBox(width: 10),
+                        DropdownButton<CustomerType>(
+                          value: cart.customerType,
+                          onChanged: (CustomerType? newValue) {
+                            if (newValue != null) {
+                              cart.setCustomerType(newValue);
+                            }
+                          },
+                          items:
+                              CustomerType.values
+                                  .map<DropdownMenuItem<CustomerType>>((
+                                    CustomerType type,
+                                  ) {
+                                    return DropdownMenuItem<CustomerType>(
+                                      value: type,
+                                      child: Text(
+                                        type
+                                            .toString()
+                                            .split('.')
+                                            .last
+                                            .toUpperCase(),
+                                      ),
+                                    );
+                                  })
+                                  .toList(),
                         ),
-                        Text(
-                          'KES ${cart.totalAmount.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary, // Changed to primary (blue)
+                      ],
+                    ),
+                  ),
+                  // Discount Input
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 4.0,
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('Discount (%):'),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              final discount = double.tryParse(value) ?? 0.0;
+                              cart.applyDiscount(discount);
+                            },
+                            decoration: const InputDecoration(
+                              hintText: 'Enter discount percentage',
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (ctx) => UserDetailsScreen(
-                              onProceedToPayment: (email, name, mobileNumber, address) {
-                                Navigator.of(ctx).pop(); // Pop UserDetailsScreen
-                                _handleCheckout(context, cart, email, name, mobileNumber, address);
-                              },
+                  // Bargain Amount Input
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 4.0,
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('Bargain Amount:'),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              final bargain = double.tryParse(value) ?? 0.0;
+                              cart.setBargainAmount(bargain);
+                            },
+                            decoration: const InputDecoration(
+                              hintText: 'Enter bargain amount',
                             ),
                           ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary, // Changed to primary (blue)
-                        padding: const EdgeInsets.symmetric(vertical: 15.0),
-                      ),
-                      child: const Text(
-                        'Checkout',
-                        style: TextStyle(fontSize: 18.0, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Card(
+                    margin: const EdgeInsets.all(15),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Total:',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'KES ${cart.finalPrice.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  Theme.of(context)
+                                      .colorScheme
+                                      .primary, // Changed to primary (blue)
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                  Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (ctx) => UserDetailsScreen(
+                                    onProceedToPayment: (
+                                      email,
+                                      name,
+                                      mobileNumber,
+                                      address,
+                                    ) {
+                                      Navigator.of(
+                                        ctx,
+                                      ).pop(); // Pop UserDetailsScreen
+                                      _handleCheckout(
+                                        context,
+                                        cart,
+                                        email,
+                                        name,
+                                        mobileNumber,
+                                        address,
+                                      );
+                                    },
+                                  ),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context)
+                                  .colorScheme
+                                  .primary, // Changed to primary (blue)
+                          padding: const EdgeInsets.symmetric(vertical: 15.0),
+                        ),
+                        child: const Text(
+                          'Checkout',
+                          style: TextStyle(fontSize: 18.0, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
     );
   }
 }
