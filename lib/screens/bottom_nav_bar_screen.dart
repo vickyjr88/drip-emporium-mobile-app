@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drip_emporium/screens/cart_screen.dart';
 import 'package:drip_emporium/screens/profile_screen.dart';
 import 'package:drip_emporium/services/payment_service.dart';
@@ -18,53 +19,79 @@ class BottomNavBarScreen extends StatefulWidget {
 
 class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
   int _selectedIndex = 0;
+  bool _isSuperAdmin = false;
 
-  late final List<Widget> _pages;
+  late List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
+    _checkIfSuperAdmin();
+  }
+
+  Future<void> _checkIfSuperAdmin() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        _isSuperAdmin = false;
+        _buildPages();
+      });
+      return;
+    }
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('superAdmins')
+          .doc(user.uid)
+          .get();
+      setState(() {
+        _isSuperAdmin = doc.exists;
+        _buildPages();
+      });
+    } catch (e) {
+      print('Error checking super admin status: $e');
+      setState(() {
+        _isSuperAdmin = false;
+        _buildPages();
+      });
+    }
+  }
+
+  void _buildPages() {
     _pages = <Widget>[
       HomeScreen(paymentService: widget.paymentService),
       CartScreen(paymentService: widget.paymentService),
-      ProfileScreen(),
-      AdminDashboardScreen(), // New Admin Dashboard Screen
+      const ProfileScreen(),
+      if (_isSuperAdmin) const AdminDashboardScreen(),
     ];
   }
 
-  void _onItemTapped(int index) async {
+  void _onItemTapped(int index) {
     if (index == 1) {
-      // Index 1 is the "Message" item
       _launchWhatsApp();
-    } else if (index == 3) {
-      // Index 3 is the "Account" item (now ProfileScreen)
+      return;
+    }
+
+    int pageIndex = index;
+    if (index > 1) {
+      pageIndex = index - 1;
+    }
+
+    if (pageIndex == 2) { // Profile/Account tab
       final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        setState(() {
-          _selectedIndex = 2; // ProfileScreen is at index 2 in _pages
-        });
-      } else {
+      if (user == null) {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
+        return;
       }
-    } else if (index == 4) {
-      // New Admin tab at index 4
-      setState(() {
-        _selectedIndex = 3; // AdminDashboardScreen is at index 3 in _pages
-      });
-    } else {
-      setState(() {
-        // Adjust index for the pages list
-        if (index > 1) {
-          _selectedIndex = index - 1;
-        } else {
-          _selectedIndex = index;
-        }
-      });
     }
+
+    setState(() {
+      _selectedIndex = pageIndex;
+    });
   }
+
 
   void _launchWhatsApp() async {
     const phoneNumber = '254113206481';
@@ -119,29 +146,44 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_pages.isEmpty) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final navBarItems = <BottomNavigationBarItem>[
+      const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+      const BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Message'),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.shopping_cart),
+        label: 'Cart',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.account_circle),
+        label: 'Account',
+      ),
+      if (_isSuperAdmin)
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.admin_panel_settings),
+          label: 'Admin',
+        ),
+    ];
+
+    int currentIndex = _selectedIndex;
+    if (_selectedIndex > 0) {
+      currentIndex = _selectedIndex + 1;
+    }
+
     return Scaffold(
       body: _pages.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Message'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Account',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.admin_panel_settings),
-            label: 'Admin',
-          ),
-        ],
-        currentIndex: _selectedIndex < 1 ? _selectedIndex : _selectedIndex + 1,
+        items: navBarItems,
+        currentIndex: currentIndex,
         selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }
