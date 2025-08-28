@@ -6,6 +6,7 @@ class Attender {
   final String email;
   final String storeId;
   final String role;
+  final String phoneNumber;
 
   Attender({
     required this.id,
@@ -13,6 +14,7 @@ class Attender {
     required this.email,
     required this.storeId,
     required this.role,
+    required this.phoneNumber,
   });
 
   factory Attender.fromFirestore(DocumentSnapshot doc) {
@@ -23,10 +25,17 @@ class Attender {
       email: data['email'] ?? '',
       storeId: data['storeId'] ?? '',
       role: data['role'] ?? '',
+      phoneNumber: data['phoneNumber'] ?? '',
     );
   }
 
   Map<String, dynamic> toFirestore() {
-    return {'name': name, 'email': email, 'storeId': storeId, 'role': role};
+    return {
+      'name': name,
+      'email': email,
+      'storeId': storeId,
+      'role': role,
+      'phoneNumber': phoneNumber,
+    };
   }
 }

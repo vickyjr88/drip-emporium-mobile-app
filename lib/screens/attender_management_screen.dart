@@ -18,6 +18,7 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _roleController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
 
   Attender? _editingAttender;
   Store? _selectedStore;
@@ -27,6 +28,7 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _roleController.dispose();
+    _phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -46,6 +48,7 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
           email: _emailController.text,
           storeId: _selectedStore!.id,
           role: _roleController.text,
+          phoneNumber: _phoneNumberController.text,
         );
         await attenderProvider.addAttender(newAttender);
       } else {
@@ -56,6 +59,7 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
           email: _emailController.text,
           storeId: _selectedStore!.id,
           role: _roleController.text,
+          phoneNumber: _phoneNumberController.text,
         );
         await attenderProvider.updateAttender(updatedAttender);
         _editingAttender = null; // Clear editing state
@@ -71,6 +75,7 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
       _nameController.text = attender.name;
       _emailController.text = attender.email;
       _roleController.text = attender.role;
+      _phoneNumberController.text = attender.phoneNumber;
       // Find the store and pre-select it
       final storeProvider = Provider.of<StoreProvider>(context, listen: false);
       _selectedStore = storeProvider.stores.firstWhere(
@@ -93,6 +98,7 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
     _nameController.clear();
     _emailController.clear();
     _roleController.clear();
+    _phoneNumberController.clear();
     setState(() {
       _editingAttender = null;
       _selectedStore = null;
@@ -135,6 +141,17 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
                         }
                         if (!value.contains('@')) {
                           return 'Please enter a valid email.';
+                        }
+                        return null;
+                      },
+                    ),
+                    TextFormField(
+                      controller: _phoneNumberController,
+                      decoration: const InputDecoration(labelText: 'Phone Number'),
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a phone number.';
                         }
                         return null;
                       },
