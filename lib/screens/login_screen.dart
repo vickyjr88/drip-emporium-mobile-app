@@ -1,3 +1,4 @@
+import 'package:drip_emporium/models/attender.dart';
 import 'package:drip_emporium/screens/forgot_password_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:drip_emporium/screens/signup_screen.dart';
 import 'package:drip_emporium/services/data_repository.dart';
 import 'package:drip_emporium/screens/profile_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -90,8 +92,47 @@ class _LoginScreenState extends State<LoginScreen> {
         photoURL: user.photoURL,
         phoneNumber: user.phoneNumber,
       );
+
+      // Check if user is admin and create attendant profile if needed
+      final doc = await FirebaseFirestore.instance
+          .collection('superAdmins')
+          .doc(user.uid)
+          .get();
+
+      if (doc.exists) {
+        // User is a super admin, check if an attendant profile with this email exists
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('attenders')
+            .where('email', isEqualTo: user.email)
+            .limit(1)
+            .get();
+
+        if (querySnapshot.docs.isEmpty) {
+          // Attendant profile doesn't exist, create one
+          await dataRepository.initDatabase();
+          final stores = await dataRepository.getStores();
+          final store = stores.firstWhere(
+            (s) => s.name == 'Drip Emporium Store',
+            orElse: () => throw Exception('Drip Emporium Store not found'),
+          );
+
+          // Get phone number from user record
+          final userDetails = await dataRepository.getUserDetails(user.uid);
+          final phoneNumber = userDetails?['phoneNumber'] ?? '';
+
+          final newAttender = Attender(
+            id: user.uid, // It's better to use the user's UID as the attendant ID for consistency
+            name: user.displayName ?? 'Admin User',
+            email: user.email ?? '',
+            storeId: store.id,
+            role: 'Attendant',
+            phoneNumber: phoneNumber,
+          );
+          await dataRepository.addAttender(newAttender);
+        }
+      }
     } catch (e) {
-      print('Error creating/updating user document: $e');
+      print('Error creating/updating user document or attendant profile: $e');
       // Don't show error to user as this shouldn't block login
     }
   }

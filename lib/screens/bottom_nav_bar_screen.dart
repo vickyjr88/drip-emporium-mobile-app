@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drip_emporium/screens/cart_screen.dart';
 import 'package:drip_emporium/screens/profile_screen.dart';
@@ -20,22 +22,32 @@ class BottomNavBarScreen extends StatefulWidget {
 class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
   int _selectedIndex = 0;
   bool _isSuperAdmin = false;
-
-  late List<Widget> _pages;
+  List<Widget> _pages = [];
+  StreamSubscription<User?>? _authSubscription;
 
   @override
   void initState() {
     super.initState();
-    _checkIfSuperAdmin();
+    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      _checkIfSuperAdmin();
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _checkIfSuperAdmin() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      setState(() {
-        _isSuperAdmin = false;
-        _buildPages();
-      });
+      if (mounted) {
+        setState(() {
+          _isSuperAdmin = false;
+          _buildPages();
+        });
+      }
       return;
     }
     try {
@@ -43,16 +55,20 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
           .collection('superAdmins')
           .doc(user.uid)
           .get();
-      setState(() {
-        _isSuperAdmin = doc.exists;
-        _buildPages();
-      });
+      if (mounted) {
+        setState(() {
+          _isSuperAdmin = doc.exists;
+          _buildPages();
+        });
+      }
     } catch (e) {
       print('Error checking super admin status: $e');
-      setState(() {
-        _isSuperAdmin = false;
-        _buildPages();
-      });
+      if (mounted) {
+        setState(() {
+          _isSuperAdmin = false;
+          _buildPages();
+        });
+      }
     }
   }
 

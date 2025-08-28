@@ -11,13 +11,67 @@ import 'package:drip_emporium/services/payment_service.dart'; // New import
 import 'package:drip_emporium/config/app_config.dart'; // New import
 import 'package:cloud_firestore/cloud_firestore.dart'; // New import
 import 'package:firebase_auth/firebase_auth.dart'; // New import
+import '../models/attender.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   final PaymentService paymentService; // New field
   const CartScreen({
     super.key,
     required this.paymentService,
   }); // Updated constructor
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  CustomerType? _customerType;
+  bool _isSuperAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    // Check for super admin status
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('superAdmins')
+          .doc(user.uid)
+          .get();
+      setState(() {
+        _isSuperAdmin = doc.exists;
+      });
+    } catch (e) {
+      print('Error checking super admin status: $e');
+    }
+
+    // Fetch customer type
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        setState(() {
+          _customerType = CustomerType.values.firstWhere(
+            (e) =>
+                e.toString() ==
+                'CustomerType.' + (data['customerType'] ?? 'client'),
+            orElse: () => CustomerType.client,
+          );
+        });
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+    }
+  }
 
   Future<void> _handleCheckout(
     BuildContext context,
@@ -96,7 +150,7 @@ class CartScreen extends StatelessWidget {
               data['data']['access_code']; // Get access_code
 
           // Launch the Paystack payment UI using the SDK
-          await paymentService.launchPayment(
+          await widget.paymentService.launchPayment(
             context,
             accessCode,
           ); // Call SDK method
@@ -187,6 +241,22 @@ class CartScreen extends StatelessWidget {
         'status': 'initiated', // Initial status
       };
 
+      if (_isSuperAdmin) {
+        try {
+          final attenderDoc = await FirebaseFirestore.instance
+              .collection('attenders')
+              .doc(user.uid)
+              .get();
+          if (attenderDoc.exists) {
+            final attender = Attender.fromFirestore(attenderDoc);
+            orderData['attenderId'] = attender.id;
+            orderData['storeId'] = attender.storeId;
+          }
+        } catch (e) {
+          print('Error fetching attender data for admin: $e');
+        }
+      }
+
       final docRef = await FirebaseFirestore.instance
           .collection('orders')
           .add(orderData);
@@ -201,6 +271,10 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
+    final bool showShopFeatures =
+        _customerType == CustomerType.reseller ||
+        _customerType == CustomerType.shop ||
+        _isSuperAdmin;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Your Cart')),
@@ -282,94 +356,97 @@ class CartScreen extends StatelessWidget {
                       },
                     ),
                   ),
-                  // Customer Type Selection
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                      vertical: 4.0,
-                    ),
-                    child: Row(
-                      children: [
-                        const Text('Customer Type:'),
-                        const SizedBox(width: 10),
-                        DropdownButton<CustomerType>(
-                          value: cart.customerType,
-                          onChanged: (CustomerType? newValue) {
-                            if (newValue != null) {
-                              cart.setCustomerType(newValue);
-                            }
-                          },
-                          items:
-                              CustomerType.values
-                                  .map<DropdownMenuItem<CustomerType>>((
-                                    CustomerType type,
-                                  ) {
-                                    return DropdownMenuItem<CustomerType>(
-                                      value: type,
-                                      child: Text(
-                                        type
-                                            .toString()
-                                            .split('.')
-                                            .last
-                                            .toUpperCase(),
-                                      ),
-                                    );
-                                  })
-                                  .toList(),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Discount Input
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                      vertical: 4.0,
-                    ),
-                    child: Row(
-                      children: [
-                        const Text('Discount (%):'),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              final discount = double.tryParse(value) ?? 0.0;
-                              cart.applyDiscount(discount);
+                  if (showShopFeatures)
+                    // Customer Type Selection
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
+                      ),
+                      child: Row(
+                        children: [
+                          const Text('Customer Type:'),
+                          const SizedBox(width: 10),
+                          DropdownButton<CustomerType>(
+                            value: cart.customerType,
+                            onChanged: (CustomerType? newValue) {
+                              if (newValue != null) {
+                                cart.setCustomerType(newValue);
+                              }
                             },
-                            decoration: const InputDecoration(
-                              hintText: 'Enter discount percentage',
+                            items:
+                                CustomerType.values
+                                    .map<DropdownMenuItem<CustomerType>>((
+                                      CustomerType type,
+                                    ) {
+                                      return DropdownMenuItem<CustomerType>(
+                                        value: type,
+                                        child: Text(
+                                          type
+                                              .toString()
+                                              .split('.')
+                                              .last
+                                              .toUpperCase(),
+                                        ),
+                                      );
+                                    })
+                                    .toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (showShopFeatures)
+                    // Discount Input
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
+                      ),
+                      child: Row(
+                        children: [
+                          const Text('Discount (%):'),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              keyboardType: TextInputType.number,
+                              onChanged: (value) {
+                                final discount = double.tryParse(value) ?? 0.0;
+                                cart.applyDiscount(discount);
+                              },
+                              decoration: const InputDecoration(
+                                hintText: 'Enter discount percentage',
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  // Bargain Amount Input
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                      vertical: 4.0,
-                    ),
-                    child: Row(
-                      children: [
-                        const Text('Bargain Amount:'),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              final bargain = double.tryParse(value) ?? 0.0;
-                              cart.setBargainAmount(bargain);
-                            },
-                            decoration: const InputDecoration(
-                              hintText: 'Enter bargain amount',
+                  if (showShopFeatures)
+                    // Bargain Amount Input
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
+                      ),
+                      child: Row(
+                        children: [
+                          const Text('Bargain Amount:'),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              keyboardType: TextInputType.number,
+                              onChanged: (value) {
+                                final bargain = double.tryParse(value) ?? 0.0;
+                                cart.setBargainAmount(bargain);
+                              },
+                              decoration: const InputDecoration(
+                                hintText: 'Enter bargain amount',
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 20),
                   Card(
                     margin: const EdgeInsets.all(15),
