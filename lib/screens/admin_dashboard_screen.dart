@@ -1,3 +1,5 @@
+import 'package:drip_emporium/screens/admin_orders_screen.dart';
+import 'package:drip_emporium/screens/all_users_screen.dart';
 import 'package:flutter/material.dart';
 import '../screens/store_management_screen.dart';
 import '../screens/attender_management_screen.dart';
@@ -50,6 +52,34 @@ class AdminDashboardScreen extends StatelessWidget {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (ctx) => const SalesStatisticsScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
+          Card(
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            child: ListTile(
+              leading: const Icon(Icons.receipt_long),
+              title: const Text('View All Orders'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (ctx) => const AdminOrdersScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
+          Card(
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            child: ListTile(
+              leading: const Icon(Icons.people_alt_outlined),
+              title: const Text('View All Users'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (ctx) => const AllUsersScreen(),
                   ),
                 );
               },

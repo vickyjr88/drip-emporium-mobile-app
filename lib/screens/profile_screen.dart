@@ -1,3 +1,4 @@
+import 'package:drip_emporium/screens/admin_dashboard_screen.dart';
 import 'package:drip_emporium/screens/all_users_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -200,53 +201,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
               const SizedBox(height: 24.0),
-              ListTile(
-                leading: const Icon(Icons.receipt), // Icon for orders
-                title: const Text('My Orders'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const OrdersScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.favorite), // Icon for favorites
-                title: const Text('My Favorites'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const FavoritesScreen(),
-                    ),
-                  );
-                },
-              ),
-              // Conditionally display admin orders link
               if (_isSuperAdmin)
                 ListTile(
-                  leading: const Icon(Icons.admin_panel_settings), // Admin icon
-                  title: const Text('View All Orders (Admin)'),
+                  leading: const Icon(Icons.admin_panel_settings),
+                  title: const Text('Admin Dashboard'),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AdminOrdersScreen(),
-                      ),
-                    );
-                  },
-                ),
-              if (_isSuperAdmin)
-                ListTile(
-                  leading: const Icon(Icons.people), // All users icon
-                  title: const Text('View All Users (Admin)'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AllUsersScreen(),
+                        builder: (context) => const AdminDashboardScreen(),
                       ),
                     );
                   },
@@ -254,6 +217,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: _saveUserProfile,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text('Save Profile'),
               ),
             ],
