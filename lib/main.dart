@@ -20,6 +20,9 @@ import 'package:drip_emporium/screens/profile_screen.dart'; // New import
 import 'package:url_launcher/url_launcher.dart'; // New import
 import 'package:drip_emporium/screens/bottom_nav_bar_screen.dart';
 import 'package:drip_emporium/screens/settings_screen.dart';
+import 'package:drip_emporium/providers/store_provider.dart';
+import 'package:drip_emporium/providers/attender_provider.dart';
+import 'package:drip_emporium/providers/orders_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +43,15 @@ void main() async {
         ChangeNotifierProvider(
           create: (context) => FavoritesProvider(),
         ), // New provider
+        ChangeNotifierProvider(
+          create: (context) => StoreProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => AttenderProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => OrdersProvider(),
+        ),
       ],
       child: const MyApp(),
     ),

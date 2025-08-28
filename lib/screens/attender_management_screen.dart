@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/attender_provider.dart';
 import '../models/attender.dart';
+import '../providers/store_provider.dart';
+import '../models/store.dart';
 
 class AttenderManagementScreen extends StatefulWidget {
   const AttenderManagementScreen({super.key});
@@ -15,16 +17,15 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _storeIdController = TextEditingController();
   final TextEditingController _roleController = TextEditingController();
 
   Attender? _editingAttender;
+  Store? _selectedStore;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _storeIdController.dispose();
     _roleController.dispose();
     super.dispose();
   }
@@ -43,7 +44,7 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
           id: DateTime.now().toIso8601String(), // Simple unique ID for now
           name: _nameController.text,
           email: _emailController.text,
-          storeId: _storeIdController.text,
+          storeId: _selectedStore!.id,
           role: _roleController.text,
         );
         await attenderProvider.addAttender(newAttender);
@@ -53,7 +54,7 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
           id: _editingAttender!.id,
           name: _nameController.text,
           email: _emailController.text,
-          storeId: _storeIdController.text,
+          storeId: _selectedStore!.id,
           role: _roleController.text,
         );
         await attenderProvider.updateAttender(updatedAttender);
@@ -69,8 +70,13 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
       _editingAttender = attender;
       _nameController.text = attender.name;
       _emailController.text = attender.email;
-      _storeIdController.text = attender.storeId;
       _roleController.text = attender.role;
+      // Find the store and pre-select it
+      final storeProvider = Provider.of<StoreProvider>(context, listen: false);
+      _selectedStore = storeProvider.stores.firstWhere(
+        (store) => store.id == attender.storeId,
+        orElse: () => storeProvider.stores.first, // Fallback to first store if not found
+      );
     });
     _showAttenderDialog();
   }
@@ -86,10 +92,10 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
   void _clearForm() {
     _nameController.clear();
     _emailController.clear();
-    _storeIdController.clear();
     _roleController.clear();
     setState(() {
       _editingAttender = null;
+      _selectedStore = null;
     });
   }
 
@@ -133,14 +139,39 @@ class _AttenderManagementScreenState extends State<AttenderManagementScreen> {
                         return null;
                       },
                     ),
-                    TextFormField(
-                      controller: _storeIdController,
-                      decoration: const InputDecoration(labelText: 'Store ID'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a store ID.';
+                    Consumer<StoreProvider>(
+                      builder: (context, storeProvider, child) {
+                        if (storeProvider.isLoading) {
+                          return const CircularProgressIndicator();
                         }
-                        return null;
+                        if (storeProvider.stores.isEmpty) {
+                          return const Text('No stores available. Please add a store first.');
+                        }
+                        // Initialize _selectedStore if it's null and there are stores
+                        if (_selectedStore == null) {
+                          _selectedStore = storeProvider.stores.first;
+                        }
+                        return DropdownButtonFormField<Store>(
+                          value: _selectedStore,
+                          decoration: const InputDecoration(labelText: 'Select Store'),
+                          items: storeProvider.stores.map((store) {
+                            return DropdownMenuItem<Store>(
+                              value: store,
+                              child: Text(store.name),
+                            );
+                          }).toList(),
+                          onChanged: (Store? newValue) {
+                            setState(() {
+                              _selectedStore = newValue;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Please select a store.';
+                            }
+                            return null;
+                          },
+                        );
                       },
                     ),
                     TextFormField(
