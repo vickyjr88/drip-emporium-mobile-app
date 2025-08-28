@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:drip_emporium/widgets/attendant_form_dialog.dart';
 
 class UserDetailsViewScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -47,25 +48,12 @@ class _UserDetailsViewScreenState extends State<UserDetailsViewScreen> {
   }
 
   Future<void> _makeUserAttendant() async {
-    final storeProvider = Provider.of<StoreProvider>(context, listen: false);
-    await storeProvider.fetchStores(); // Ensure stores are loaded
-    final stores = storeProvider.stores;
-
-    final selectedStore = await showDialog<Store>(
+    final newAttender = await showDialog<Attender>(
       context: context,
-      builder: (context) => StoreSelectionDialog(stores: stores),
+      builder: (context) => AttendantFormDialog(userData: widget.userData),
     );
 
-    if (selectedStore != null) {
-      final newAttender = Attender(
-        id: widget.userId,
-        name: widget.userData['displayName'] ?? 'No display name',
-        email: widget.userData['email'] ?? 'No email',
-        storeId: selectedStore.id,
-        role: 'Attendant', // Default role
-        phoneNumber: widget.userData['mobileNumber'] ?? 'No mobile number',
-      );
-
+    if (newAttender != null) {
       try {
         await _dataRepository.addAttender(newAttender);
         ScaffoldMessenger.of(context).showSnackBar(
