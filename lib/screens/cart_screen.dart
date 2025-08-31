@@ -13,6 +13,8 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // New import
 import 'package:firebase_auth/firebase_auth.dart'; // New import
 import '../models/attender.dart';
 
+enum PaymentMethod { payLater, payToTill, mpesa, card }
+
 class CartScreen extends StatefulWidget {
   final PaymentService paymentService; // New field
   const CartScreen({
@@ -27,6 +29,7 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   CustomerType? _customerType;
   bool _isSuperAdmin = false;
+  PaymentMethod? _selectedPaymentMethod;
 
   @override
   void initState() {
@@ -81,6 +84,25 @@ class _CartScreenState extends State<CartScreen> {
     String mobileNumber,
     String address,
   ) async {
+    if (_selectedPaymentMethod == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a payment method.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    CustomerType? customerTypeAtOrder = cart.customerType;
+    if (_customerType == CustomerType.reseller) {
+      final selectedCustomerType = await _showCustomerSelectionDialog();
+      if (selectedCustomerType == null) {
+        return; // User cancelled the dialog
+      }
+      customerTypeAtOrder = selectedCustomerType;
+    }
+
     // Show loading dialog
     showDialog(
       context: context,
@@ -91,7 +113,7 @@ class _CartScreenState extends State<CartScreen> {
             children: [
               CircularProgressIndicator(),
               SizedBox(width: 16),
-              Text('Initializing payment...'),
+              Text('Processing order...'),
             ],
           ),
         );
@@ -99,7 +121,6 @@ class _CartScreenState extends State<CartScreen> {
     );
 
     try {
-      // Save order to Firestore before initiating payment
       final orderId = await _saveOrderToFirestore(
         context,
         cart,
@@ -107,70 +128,85 @@ class _CartScreenState extends State<CartScreen> {
         name,
         mobileNumber,
         address,
+        _selectedPaymentMethod!,
+        customerTypeAtOrder,
       );
 
-      // Initialize Paystack transaction via API
-      final String paystackUrl =
-          'https://api.paystack.co/transaction/initialize';
-      final String reference = orderId!; // Use orderId as reference
+      if (_selectedPaymentMethod == PaymentMethod.mpesa ||
+          _selectedPaymentMethod == PaymentMethod.card) {
+        // Initialize Paystack transaction via API
+        final String paystackUrl =
+            'https://api.paystack.co/transaction/initialize';
+        final String reference = orderId!; // Use orderId as reference
 
-      final response = await http.post(
-        Uri.parse(paystackUrl),
-        headers: {
-          'Authorization':
-              'Bearer ${AppConfig.paystackLiveSecretKey}', // Use from AppConfig
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({
-          'amount': (cart.totalAmount * 100).toInt(), // Amount in kobo
-          'email': email,
-          'reference': reference,
-          'currency': 'KES',
-          'callback_url':
-              'dripemporium://payment-callback', // Deep link callback URL
-          'channels': [
-            'card',
-            'bank',
-            'ussd',
-            'qr',
-            'mobile_money',
-            'bank_transfer',
-            'eft',
-          ], // All available channels
-        }),
-      );
+        final response = await http.post(
+          Uri.parse(paystackUrl),
+          headers: {
+            'Authorization':
+                'Bearer ${AppConfig.paystackLiveSecretKey}', // Use from AppConfig
+            'Content-Type': 'application/json',
+          },
+          body: json.encode({
+            'amount': (cart.totalAmount * 100).toInt(), // Amount in kobo
+            'email': email,
+            'reference': reference,
+            'currency': 'KES',
+            'callback_url':
+                'dripemporium://payment-callback', // Deep link callback URL
+            'channels': [
+              'card',
+              'bank',
+              'ussd',
+              'qr',
+              'mobile_money',
+              'bank_transfer',
+              'eft',
+            ], // All available channels
+          }),
+        );
 
-      Navigator.of(context).pop(); // Close loading dialog
+        Navigator.of(context).pop(); // Close loading dialog
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> data = json.decode(response.body);
 
-        if (data['status'] == true) {
-          final String accessCode =
-              data['data']['access_code']; // Get access_code
+          if (data['status'] == true) {
+            final String accessCode =
+                data['data']['access_code']; // Get access_code
 
-          // Launch the Paystack payment UI using the SDK
-          await widget.paymentService.launchPayment(
-            context,
-            accessCode,
-          ); // Call SDK method
+            // Launch the Paystack payment UI using the SDK
+            await widget.paymentService.launchPayment(
+              context,
+              accessCode,
+            ); // Call SDK method
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Payment initialization failed: ${data['message']}',
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                'Payment initialization failed: ${data['message']}',
-              ),
+              content: Text('Server error: ${response.statusCode}'),
               backgroundColor: Colors.red,
             ),
           );
         }
       } else {
+        Navigator.of(context).pop(); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Server error: ${response.statusCode}'),
-            backgroundColor: Colors.red,
+          const SnackBar(
+            content: Text('Order placed successfully.'),
+            backgroundColor: Colors.green,
           ),
         );
+        cart.clearCart();
+        Navigator.of(context).pop();
       }
     } on SocketException catch (_) {
       Navigator.of(context).pop(); // Close loading dialog
@@ -202,6 +238,8 @@ class _CartScreenState extends State<CartScreen> {
     String name,
     String mobileNumber,
     String address,
+    PaymentMethod paymentMethod,
+    CustomerType customerType,
   ) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -233,12 +271,13 @@ class _CartScreenState extends State<CartScreen> {
               };
             }).toList(),
         'totalAmount': cart.totalAmount,
-        'customerTypeAtOrder': cart.customerType.toString().split('.').last,
+        'customerTypeAtOrder': customerType.toString().split('.').last,
         'discountApplied': cart.discountPercentage,
         'bargainPrice': cart.bargainAmount,
         'finalPrice': cart.finalPrice,
         'timestamp': FieldValue.serverTimestamp(),
         'status': 'initiated', // Initial status
+        'paymentMethod': paymentMethod.toString().split('.').last,
       };
 
       String? attenderId;
@@ -296,6 +335,34 @@ class _CartScreenState extends State<CartScreen> {
       print('Error saving order to Firestore: $e');
       throw e; // Re-throw the exception
     }
+  }
+
+  Future<CustomerType?> _showCustomerSelectionDialog() async {
+    return await showDialog<CustomerType>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select Customer Type'),
+          content: DropdownButton<CustomerType>(
+            value: CustomerType.client,
+            onChanged: (CustomerType? newValue) {
+              if (newValue != null) {
+                Navigator.of(context).pop(newValue);
+              }
+            },
+            items: CustomerType.values
+                .map<DropdownMenuItem<CustomerType>>((CustomerType type) {
+              return DropdownMenuItem<CustomerType>(
+                value: type,
+                child: Text(
+                  type.toString().split('.').last.toUpperCase(),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -478,6 +545,64 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                     ),
                   const SizedBox(height: 20),
+                  const Text('Select Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      PaymentMethodCard(
+                        method: PaymentMethod.payLater,
+                        icon: Icons.history,
+                        label: 'Pay Later',
+                        isSelected: _selectedPaymentMethod == PaymentMethod.payLater,
+                        onTap: () {
+                          setState(() {
+                            _selectedPaymentMethod = PaymentMethod.payLater;
+                          });
+                        },
+                      ),
+                      PaymentMethodCard(
+                        method: PaymentMethod.payToTill,
+                        icon: Icons.store,
+                        label: 'Pay to Till',
+                        isSelected: _selectedPaymentMethod == PaymentMethod.payToTill,
+                        onTap: () {
+                          setState(() {
+                            _selectedPaymentMethod = PaymentMethod.payToTill;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      PaymentMethodCard(
+                        method: PaymentMethod.mpesa,
+                        icon: Icons.phone_android,
+                        label: 'Mpesa',
+                        isSelected: _selectedPaymentMethod == PaymentMethod.mpesa,
+                        onTap: () {
+                          setState(() {
+                            _selectedPaymentMethod = PaymentMethod.mpesa;
+                          });
+                        },
+                      ),
+                      PaymentMethodCard(
+                        method: PaymentMethod.card,
+                        icon: Icons.credit_card,
+                        label: 'Card',
+                        isSelected: _selectedPaymentMethod == PaymentMethod.card,
+                        onTap: () {
+                          setState(() {
+                            _selectedPaymentMethod = PaymentMethod.card;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
                   Card(
                     margin: const EdgeInsets.all(15),
                     child: Padding(
@@ -556,6 +681,54 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                 ],
               ),
+    );
+  }
+}
+
+class PaymentMethodCard extends StatelessWidget {
+  final PaymentMethod method;
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const PaymentMethodCard({
+    super.key,
+    required this.method,
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+        child: SizedBox(
+          width: 150,
+          height: 100,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 40,
+                color: isSelected ? Colors.white : Colors.black,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
