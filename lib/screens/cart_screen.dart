@@ -216,7 +216,7 @@ class _CartScreenState extends State<CartScreen> {
         return null;
       }
 
-      final orderData = {
+      final Map<String, dynamic> orderData = {
         'userId': user.uid,
         'email': email,
         'name': name,
@@ -241,6 +241,9 @@ class _CartScreenState extends State<CartScreen> {
         'status': 'initiated', // Initial status
       };
 
+      String? attenderId;
+      String? storeId;
+
       if (_isSuperAdmin) {
         try {
           final attenderDoc = await FirebaseFirestore.instance
@@ -249,12 +252,39 @@ class _CartScreenState extends State<CartScreen> {
               .get();
           if (attenderDoc.exists) {
             final attender = Attender.fromFirestore(attenderDoc);
-            orderData['attenderId'] = attender.id;
-            orderData['storeId'] = attender.storeId;
+            attenderId = attender.id;
+            storeId = attender.storeId;
           }
         } catch (e) {
           print('Error fetching attender data for admin: $e');
         }
+      }
+
+      // If no attender is found, use the default attender
+      if (attenderId == null) {
+        try {
+          final attenderQuery = await FirebaseFirestore.instance
+              .collection('attenders')
+              .where('email', isEqualTo: 'vickyjr88@gmail.com')
+              .limit(1)
+              .get();
+
+          if (attenderQuery.docs.isNotEmpty) {
+            final attender = Attender.fromFirestore(attenderQuery.docs.first);
+            attenderId = attender.id;
+            storeId = attender.storeId;
+          } else {
+            print('Default attender not found.');
+            // Handle the case where the default attender is not found
+          }
+        } catch (e) {
+          print('Error fetching default attender: $e');
+        }
+      }
+
+      if (attenderId != null) {
+        orderData['attenderId'] = attenderId;
+        orderData['storeId'] = storeId;
       }
 
       final docRef = await FirebaseFirestore.instance
