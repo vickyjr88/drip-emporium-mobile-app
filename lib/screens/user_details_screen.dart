@@ -51,10 +51,10 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   void _checkIfAttender() async {
     final user = _auth.currentUser;
     if (user != null) {
-      final attenderDoc = await _dataRepository.getAttender(user.uid);
+      final attender = await _dataRepository.getAttenderByEmail(user.email!);
       if (mounted) {
         setState(() {
-          _isAttender = attenderDoc != null;
+          _isAttender = attender != null;
         });
         if (_isAttender) {
           _loadCustomers();
@@ -208,43 +208,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             },
           ),
           const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () async {
-              if (await FlutterContacts.requestPermission()) {
-                final contact = await FlutterContacts.openExternalPick();
-                if (contact != null) {
-                  setState(() {
-                    _nameController.text = contact.displayName;
-                    _mobileController.text = contact.phones.isNotEmpty ? contact.phones.first.number : '';
-                    _emailController.text = contact.emails.isNotEmpty ? contact.emails.first.address : '';
-                  });
-                }
-              }
-            },
-            icon: const Icon(Icons.contacts),
-            label: const Text('Select from Contacts'),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () async {
-              final result = await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const ManualCustomerEntryScreen(),
-                ),
-              );
-              if (result != null) {
-                setState(() {
-                  _emailController.text = result['email'];
-                  _nameController.text = result['name'];
-                  _mobileController.text = result['mobileNumber'];
-                  _addressController.text = result['address'];
-                });
-              }
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Enter Manually'),
-          ),
-          const SizedBox(height: 16),
           Expanded(
             child: Form(
               key: _formKey,
@@ -332,6 +295,52 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             return null;
           },
         ),
+        const SizedBox(height: 16.0),
+        if (_isAttender)
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    if (await FlutterContacts.requestPermission()) {
+                      final contact = await FlutterContacts.openExternalPick();
+                      if (contact != null) {
+                        setState(() {
+                          _nameController.text = contact.displayName;
+                          _mobileController.text = contact.phones.isNotEmpty ? contact.phones.first.number : '';
+                          _emailController.text = contact.emails.isNotEmpty ? contact.emails.first.address : '';
+                        });
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.contacts),
+                  label: const Text('Contacts'),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final result = await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ManualCustomerEntryScreen(),
+                      ),
+                    );
+                    if (result != null) {
+                      setState(() {
+                        _emailController.text = result['email'];
+                        _nameController.text = result['name'];
+                        _mobileController.text = result['mobileNumber'];
+                        _addressController.text = result['address'];
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Manual'),
+                ),
+              ),
+            ],
+          ),
         const SizedBox(height: 32.0),
         ElevatedButton(
           onPressed: () {

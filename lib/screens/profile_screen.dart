@@ -1,5 +1,8 @@
+import 'package:drip_emporium/models/attender.dart';
+import 'package:drip_emporium/models/store.dart';
 import 'package:drip_emporium/screens/admin_dashboard_screen.dart';
 import 'package:drip_emporium/screens/all_users_screen.dart';
+import 'package:drip_emporium/services/data_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,16 +27,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final DataRepository _dataRepository = DataRepository();
 
   User? get currentUser => _auth.currentUser;
 
   bool _isSuperAdmin = false; // New state variable
+  bool _isAttender = false;
+  String? _attenderStoreName;
 
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
     _checkIfSuperAdmin(); // Check admin status
+    _checkIfAttender();
+  }
+
+  Future<void> _checkIfAttender() async {
+    if (currentUser == null) {
+      setState(() {
+        _isAttender = false;
+      });
+      return;
+    }
+    try {
+      final attender = await _dataRepository.getAttenderByEmail(currentUser!.email!);
+      if (attender != null) {
+        final storeDoc = await _firestore.collection('stores').doc(attender.storeId).get();
+        if (storeDoc.exists) {
+          final store = Store.fromFirestore(storeDoc);
+          setState(() {
+            _isAttender = true;
+            _attenderStoreName = store.name;
+          });
+        }
+      } else {
+        setState(() {
+          _isAttender = false;
+        });
+      }
+    } catch (e) {
+      print('Error checking attender status: $e');
+      setState(() {
+        _isAttender = false;
+      });
+    }
   }
 
   Future<void> _checkIfSuperAdmin() async {
@@ -201,6 +239,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
               const SizedBox(height: 24.0),
+              if (_isAttender)
+                ListTile(
+                  leading: const Icon(Icons.storefront),
+                  title: const Text('Attendant'),
+                  subtitle: Text(_attenderStoreName ?? 'No store assigned'),
+                ),
               if (_isSuperAdmin)
                 ListTile(
                   leading: const Icon(Icons.admin_panel_settings),

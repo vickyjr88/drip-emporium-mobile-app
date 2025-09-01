@@ -356,6 +356,23 @@ class DataRepository {
     }
   }
 
+  Future<Attender?> getAttenderByEmail(String email) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('attenders')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return Attender.fromFirestore(querySnapshot.docs.first);
+      }
+      return null;
+    } catch (e) {
+      print('Error getting attender by email: $e');
+      throw Exception('Failed to get attender by email: $e');
+    }
+  }
+
   Future<List<Customer>> getCustomers() async {
     try {
       final querySnapshot = await _firestore.collection('users').get();
