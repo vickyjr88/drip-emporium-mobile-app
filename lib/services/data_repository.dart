@@ -343,6 +343,31 @@ class DataRepository {
     }
   }
 
+  Future<Attender?> getAttender(String uid) async {
+    try {
+      final doc = await _firestore.collection('attenders').doc(uid).get();
+      if (doc.exists) {
+        return Attender.fromFirestore(doc);
+      }
+      return null;
+    } catch (e) {
+      print('Error getting attender: $e');
+      throw Exception('Failed to get attender: $e');
+    }
+  }
+
+  Future<List<Customer>> getCustomers() async {
+    try {
+      final querySnapshot = await _firestore.collection('users').get();
+      return querySnapshot.docs
+          .map((doc) => Customer.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      print('Error getting customers: $e');
+      throw Exception('Failed to get customers: $e');
+    }
+  }
+
   Future<Map<String, dynamic>> fetchAllOrders({
     int limit = 10,
     DocumentSnapshot? startAfter,

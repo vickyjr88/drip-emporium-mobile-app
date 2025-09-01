@@ -1,15 +1,18 @@
+import 'package:drip_emporium/models/customer.dart';
+import 'package:drip_emporium/screens/manual_customer_entry_screen.dart';
 import 'package:drip_emporium/services/data_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // New import
-import 'package:google_sign_in/google_sign_in.dart'; // New import
-// New import
-import 'package:drip_emporium/screens/login_screen.dart'; // New import
-import 'package:drip_emporium/screens/signup_screen.dart'; // New import
-import 'dart:async'; // New import
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:drip_emporium/screens/login_screen.dart';
+import 'package:drip_emporium/screens/signup_screen.dart';
+import 'dart:async';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class UserDetailsScreen extends StatefulWidget {
   final Function(String email, String name, String mobileNumber, String address)
-  onProceedToPayment;
+      onProceedToPayment;
 
   const UserDetailsScreen({super.key, required this.onProceedToPayment});
 
@@ -28,17 +31,40 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final DataRepository _dataRepository = DataRepository();
 
-  late StreamSubscription<User?> _authStateSubscription; // New
+  late StreamSubscription<User?> _authStateSubscription;
+  bool _isAttender = false;
+  List<Customer> _customers = [];
+  Customer? _selectedCustomer;
 
   @override
   void initState() {
     super.initState();
-    _populateFields(); // Populate fields if user is logged in
-
-    // Listen to auth state changes
+    _populateFields();
+    _checkIfAttender();
     _authStateSubscription = _auth.authStateChanges().listen((User? user) {
-      _populateFields(); // Update fields based on new user state
-      setState(() {}); // Rebuild UI
+      _populateFields();
+      _checkIfAttender();
+      setState(() {});
+    });
+  }
+
+  void _checkIfAttender() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final attenderDoc = await _dataRepository.getAttender(user.uid);
+      setState(() {
+        _isAttender = attenderDoc != null;
+      });
+      if (_isAttender) {
+        _loadCustomers();
+      }
+    }
+  }
+
+  void _loadCustomers() async {
+    final customers = await _dataRepository.getCustomers();
+    setState(() {
+      _customers = customers;
     });
   }
 
@@ -48,7 +74,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       _emailController.text = user.email ?? '';
       _nameController.text = user.displayName ?? '';
 
-      // Fetch extra user details from Firestore
       try {
         final userDoc = await _dataRepository.getUserDetails(user.uid);
         if (userDoc != null) {
@@ -64,7 +89,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         );
       }
     } else {
-      // Clear fields if user signs out
       _emailController.clear();
       _nameController.clear();
       _mobileController.clear();
@@ -76,7 +100,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        // The user canceled the sign-in
         return null;
       }
       final GoogleSignInAuthentication googleAuth =
@@ -88,7 +111,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       final UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
-      _populateFields(); // Populate fields after successful sign-in
+      _populateFields();
       return userCredential;
     } catch (e) {
       print('Error signing in with Google: $e');
@@ -108,7 +131,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     _nameController.dispose();
     _mobileController.dispose();
     _addressController.dispose();
-    _authStateSubscription.cancel(); // Cancel subscription
+    _authStateSubscription.cancel();
     super.dispose();
   }
 
@@ -118,7 +141,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       appBar: AppBar(
         title: const Text('Enter Your Details'),
         actions: [
-          // Logout button if user is logged in
           if (_auth.currentUser != null)
             IconButton(
               icon: const Icon(Icons.logout),
@@ -133,211 +155,265 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            // Changed to ListView to allow scrolling
-            children: [
-              TextFormField(
-                controller: _emailController, // Use controller
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!RegExp(
-                    r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
-                  ).hasMatch(value)) {
-                    return 'Please enter a valid email address';
-                  }
-                  return null;
+      body: _isAttender ? _buildAttenderView() : _buildRegularView(),
+    );
+  }
+
+  Widget _buildAttenderView() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          SearchAnchor(
+            builder: (BuildContext context, SearchController controller) {
+              return SearchBar(
+                controller: controller,
+                onTap: () {
+                  controller.openView();
                 },
-                // onSaved: (value) { _email = value!; }, // No longer needed with controller
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _nameController, // Use controller
-                decoration: const InputDecoration(
-                  labelText: 'Full Name',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your full name';
-                  }
-                  return null;
+                onChanged: (_) {
+                  controller.openView();
                 },
-                // onSaved: (value) { _name = value!; }, // No longer needed with controller
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _mobileController, // New field
-                decoration: const InputDecoration(
-                  labelText: 'Mobile Number',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your mobile number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _addressController, // New field
-                decoration: const InputDecoration(
-                  labelText: 'Delivery Address',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your delivery address';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 32.0),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    widget.onProceedToPayment(
-                      _emailController.text,
-                      _nameController.text,
-                      _mobileController.text,
-                      _addressController.text,
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 15.0),
-                ),
-                child: const Text(
-                  'Proceed to Payment',
-                  style: TextStyle(fontSize: 18.0, color: Colors.white),
-                ),
-              ),
-              // Show Sign Out button if user is logged in
-              if (false && _auth.currentUser != null) ...[
-                // Temporarily hide
-                const SizedBox(height: 16.0), // Spacing between buttons
-                ElevatedButton(
-                  onPressed: () async {
-                    await _auth.signOut();
-                    _emailController.clear();
-                    _nameController.clear();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Signed out successfully!')),
-                    );
-                    setState(() {}); // Rebuild to hide sign-in options
+                leading: const Icon(Icons.search),
+              );
+            },
+            suggestionsBuilder:
+                (BuildContext context, SearchController controller) {
+              return List<ListTile>.generate(5, (int index) {
+                final String item = 'item $index';
+                return ListTile(
+                  title: Text(item),
+                  onTap: () {
+                    setState(() {
+                      controller.closeView(item);
+                    });
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(
-                          context,
-                        ).colorScheme.secondary, // Different color for sign out
-                    padding: const EdgeInsets.symmetric(vertical: 15.0),
+                );
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () async {
+              if (await FlutterContacts.requestPermission()) {
+                final contact = await FlutterContacts.openExternalPick();
+                if (contact != null) {
+                  setState(() {
+                    _nameController.text = contact.displayName;
+                    _mobileController.text = contact.phones.isNotEmpty ? contact.phones.first.number : '';
+                    _emailController.text = contact.emails.isNotEmpty ? contact.emails.first.address : '';
+                  });
+                }
+              }
+            },
+            icon: const Icon(Icons.contacts),
+            label: const Text('Select from Contacts'),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () async {
+              final result = await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ManualCustomerEntryScreen(),
+                ),
+              );
+              if (result != null) {
+                setState(() {
+                  _emailController.text = result['email'];
+                  _nameController.text = result['name'];
+                  _mobileController.text = result['mobileNumber'];
+                  _addressController.text = result['address'];
+                });
+              }
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Enter Manually'),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Form(
+              key: _formKey,
+              child: _buildFormFields(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRegularView() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: _buildFormFields(),
+      ),
+    );
+  }
+
+  Widget _buildFormFields() {
+    return ListView(
+      children: [
+        TextFormField(
+          controller: _emailController,
+          decoration: const InputDecoration(
+            labelText: 'Email',
+            border: OutlineInputBorder(),
+          ),
+          keyboardType: TextInputType.emailAddress,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your email';
+            }
+            if (!RegExp(
+              r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+            ).hasMatch(value)) {
+              return 'Please enter a valid email address';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16.0),
+        TextFormField(
+          controller: _nameController,
+          decoration: const InputDecoration(
+            labelText: 'Full Name',
+            border: OutlineInputBorder(),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your full name';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16.0),
+        TextFormField(
+          controller: _mobileController,
+          decoration: const InputDecoration(
+            labelText: 'Mobile Number',
+            border: OutlineInputBorder(),
+          ),
+          keyboardType: TextInputType.phone,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your mobile number';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16.0),
+        TextFormField(
+          controller: _addressController,
+          decoration: const InputDecoration(
+            labelText: 'Delivery Address',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your delivery address';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 32.0),
+        ElevatedButton(
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              widget.onProceedToPayment(
+                _emailController.text,
+                _nameController.text,
+                _mobileController.text,
+                _addressController.text,
+              );
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            padding: const EdgeInsets.symmetric(vertical: 15.0),
+          ),
+          child: const Text(
+            'Proceed to Payment',
+            style: TextStyle(fontSize: 18.0, color: Colors.white),
+          ),
+        ),
+        if (_auth.currentUser == null)
+          Center(
+            child: Column(
+              children: [
+                const SizedBox(height: 32.0),
+                const Divider(),
+                const SizedBox(height: 16.0),
+                const Text('Or sign in to pre-fill details:'),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      UserCredential? userCredential =
+                          await _signInWithGoogle();
+                      if (userCredential != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Signed in as ${userCredential.user!.displayName ?? userCredential.user!.email}',
+                            ),
+                          ),
+                        );
+                        _populateFields();
+                        setState(() {});
+                      }
+                    },
+                    icon: Image.asset(
+                      'assets/images/google_logo.png',
+                      height: 24.0,
+                    ),
+                    label: const Text('Sign In with Google'),
                   ),
-                  child: const Text(
-                    'Sign Out',
-                    style: TextStyle(fontSize: 18.0, color: Colors.white),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                          )
+                          .then(
+                            (_) => _populateFields(),
+                          );
+                      setState(() {});
+                    },
+                    child: const Text('Sign In with Email'),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                              builder: (context) => const SignUpScreen(),
+                            ),
+                          )
+                          .then(
+                            (_) => _populateFields(),
+                          );
+                      setState(() {});
+                    },
+                    child: const Text('Sign Up with Email'),
                   ),
                 ),
               ],
-              const SizedBox(height: 32.0),
-              const Divider(),
-              const SizedBox(height: 16.0),
-              // Hide sign-in options if user is logged in
-              if (_auth.currentUser == null)
-                Center(
-                  child: Column(
-                    children: [
-                      const Text('Or sign in to pre-fill details:'),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        // New SizedBox for full width
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () async {
-                            UserCredential? userCredential =
-                                await _signInWithGoogle();
-                            if (userCredential != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Signed in as ${userCredential.user!.displayName ?? userCredential.user!.email}',
-                                  ),
-                                ),
-                              );
-                              _populateFields(); // Populate fields after successful sign-in
-                              setState(
-                                () {},
-                              ); // Rebuild to hide sign-in options
-                            }
-                          },
-                          icon: Image.asset(
-                            'assets/images/google_logo.png',
-                            height: 24.0,
-                          ), // Placeholder for Google logo
-                          label: const Text('Sign In with Google'),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        // New SizedBox for full width
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context)
-                                .push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const LoginScreen(),
-                                  ),
-                                )
-                                .then(
-                                  (_) => _populateFields(),
-                                ); // Populate fields when returning from login
-                            setState(() {}); // Rebuild to hide sign-in options
-                          },
-                          child: const Text('Sign In with Email'),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        // New SizedBox for full width
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context)
-                                .push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const SignUpScreen(),
-                                  ),
-                                )
-                                .then(
-                                  (_) => _populateFields(),
-                                ); // Populate fields when returning from signup
-                            setState(() {}); // Rebuild to hide sign-in options
-                          },
-                          child: const Text('Sign Up with Email'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
+            ),
           ),
-        ),
-      ),
+      ],
     );
   }
 }
