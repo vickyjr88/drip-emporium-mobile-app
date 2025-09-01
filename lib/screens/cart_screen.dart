@@ -418,7 +418,35 @@ class _CartScreenState extends State<CartScreen> {
                                     IconButton(
                                       icon: const Icon(Icons.remove),
                                       onPressed: () {
-                                        cart.decreaseItemQuantity(productId);
+                                        if (item['quantity'] == 1) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                title: const Text('Remove Item?'),
+                                                content: const Text(
+                                                    'Are you sure you want to remove this item from your cart?'),
+                                                actions: [
+                                                  TextButton(
+                                                    child: const Text('Cancel'),
+                                                    onPressed: () {
+                                                      Navigator.of(context).pop();
+                                                    },
+                                                  ),
+                                                  TextButton(
+                                                    child: const Text('Remove'),
+                                                    onPressed: () {
+                                                      Navigator.of(context).pop();
+                                                      cart.decreaseItemQuantity(productId);
+                                                    },
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                        } else {
+                                          cart.decreaseItemQuantity(productId);
+                                        }
                                       },
                                     ),
                                     Text('${item['quantity']}'),
@@ -438,15 +466,50 @@ class _CartScreenState extends State<CartScreen> {
                                   // Delete button remains
                                   icon: const Icon(Icons.delete),
                                   onPressed: () {
-                                    cart.removeItem(productId);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          '${item['name']} removed from cart!',
+                                    if (cart.items.length == 1) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: const Text('Remove Last Item?'),
+                                            content: const Text(
+                                                'Are you sure you want to remove the last item from your cart?'),
+                                            actions: [
+                                              TextButton(
+                                                child: const Text('Cancel'),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: const Text('Remove'),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                  cart.removeItem(productId);
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                          '${item['name']} removed from cart!'),
+                                                      duration: const Duration(seconds: 1),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      cart.removeItem(productId);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              '${item['name']} removed from cart!'),
+                                          duration: const Duration(seconds: 1),
                                         ),
-                                        duration: const Duration(seconds: 1),
-                                      ),
-                                    );
+                                      );
+                                    }
                                   },
                                 ),
                               ), // This closes the ListTile
