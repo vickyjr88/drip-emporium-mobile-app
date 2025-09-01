@@ -91,12 +91,16 @@ class CartProvider with ChangeNotifier {
         },
       );
     }
+    _bargainAmount = 0.0;
+    _discountPercentage = 0.0;
     _saveCartToPrefs(); // Save cart after adding item
     notifyListeners();
   }
 
   void removeItem(String productId) {
     _items.remove(productId);
+    _bargainAmount = 0.0;
+    _discountPercentage = 0.0;
     _saveCartToPrefs(); // Save cart after removing item
     notifyListeners();
   }
@@ -110,6 +114,8 @@ class CartProvider with ChangeNotifier {
           'quantity': existingItem['quantity'] + 1,
         },
       );
+      _bargainAmount = 0.0;
+      _discountPercentage = 0.0;
       _saveCartToPrefs();
       notifyListeners();
     }
@@ -128,6 +134,8 @@ class CartProvider with ChangeNotifier {
       } else {
         _items.remove(productId); // Remove if quantity becomes 0
       }
+      _bargainAmount = 0.0;
+      _discountPercentage = 0.0;
       _saveCartToPrefs();
       notifyListeners();
     }
@@ -135,6 +143,8 @@ class CartProvider with ChangeNotifier {
 
   void clearCart() {
     _items.clear();
+    _bargainAmount = 0.0;
+    _discountPercentage = 0.0;
     _saveCartToPrefs(); // Save cart after clearing
     notifyListeners();
   }

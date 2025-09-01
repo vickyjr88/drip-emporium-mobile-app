@@ -52,11 +52,13 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     final user = _auth.currentUser;
     if (user != null) {
       final attenderDoc = await _dataRepository.getAttender(user.uid);
-      setState(() {
-        _isAttender = attenderDoc != null;
-      });
-      if (_isAttender) {
-        _loadCustomers();
+      if (mounted) {
+        setState(() {
+          _isAttender = attenderDoc != null;
+        });
+        if (_isAttender) {
+          _loadCustomers();
+        }
       }
     }
   }
@@ -175,17 +177,30 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                   controller.openView();
                 },
                 leading: const Icon(Icons.search),
+                hintText: 'Search for a customer',
               );
             },
             suggestionsBuilder:
                 (BuildContext context, SearchController controller) {
-              return List<ListTile>.generate(5, (int index) {
-                final String item = 'item $index';
+              final keyword = controller.value.text;
+              final filteredCustomers = _customers.where((customer) {
+                return customer.name.toLowerCase().contains(keyword.toLowerCase()) ||
+                    customer.email.toLowerCase().contains(keyword.toLowerCase());
+              }).toList();
+
+              return List<ListTile>.generate(filteredCustomers.length, (int index) {
+                final customer = filteredCustomers[index];
                 return ListTile(
-                  title: Text(item),
+                  title: Text(customer.name),
+                  subtitle: Text(customer.email),
                   onTap: () {
                     setState(() {
-                      controller.closeView(item);
+                      _selectedCustomer = customer;
+                      _emailController.text = customer.email;
+                      _nameController.text = customer.name;
+                      _mobileController.text = customer.phoneNumber;
+                      _addressController.text = customer.address;
+                      controller.closeView(customer.name);
                     });
                   },
                 );

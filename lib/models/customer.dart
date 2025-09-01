@@ -7,6 +7,7 @@ class Customer {
   final String name;
   final String email;
   final String phoneNumber;
+  final String address;
   final CustomerType customerType;
 
   Customer({
@@ -14,6 +15,7 @@ class Customer {
     required this.name,
     required this.email,
     required this.phoneNumber,
+    required this.address,
     required this.customerType,
   });
 
@@ -24,6 +26,7 @@ class Customer {
       name: data['name'] ?? '',
       email: data['email'] ?? '',
       phoneNumber: data['phoneNumber'] ?? '',
+      address: data['address'] ?? '',
       customerType: CustomerType.values.firstWhere(
         (e) =>
             e.toString() ==
@@ -38,6 +41,7 @@ class Customer {
       'name': name,
       'email': email,
       'phoneNumber': phoneNumber,
+      'address': address,
       'customerType': customerType.toString().split('.').last,
     };
   }

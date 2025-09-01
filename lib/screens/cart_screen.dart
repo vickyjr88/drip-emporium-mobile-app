@@ -29,7 +29,7 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   CustomerType? _customerType;
   bool _isSuperAdmin = false;
-  PaymentMethod? _selectedPaymentMethod;
+  PaymentMethod? _selectedPaymentMethod = PaymentMethod.mpesa;
 
   @override
   void initState() {
