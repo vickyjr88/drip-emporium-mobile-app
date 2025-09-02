@@ -83,6 +83,7 @@ class _CartScreenState extends State<CartScreen> {
     String name,
     String mobileNumber,
     String address,
+    String customerId,
   ) async {
     if (_selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -130,6 +131,7 @@ class _CartScreenState extends State<CartScreen> {
         address,
         _selectedPaymentMethod!,
         customerTypeAtOrder,
+        customerId,
       );
 
       if (_selectedPaymentMethod == PaymentMethod.mpesa ||
@@ -240,6 +242,7 @@ class _CartScreenState extends State<CartScreen> {
     String address,
     PaymentMethod paymentMethod,
     CustomerType customerType,
+    String customerId,
   ) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -255,7 +258,7 @@ class _CartScreenState extends State<CartScreen> {
       }
 
       final Map<String, dynamic> orderData = {
-        'userId': user.uid,
+        'userId': customerId,
         'email': email,
         'name': name,
         'mobileNumber': mobileNumber,
@@ -695,6 +698,7 @@ class _CartScreenState extends State<CartScreen> {
                                           name,
                                           mobileNumber,
                                           address,
+                                          customerId,
                                         ) {
                                           Navigator.of(
                                             ctx,
@@ -706,6 +710,7 @@ class _CartScreenState extends State<CartScreen> {
                                             name,
                                             mobileNumber,
                                             address,
+                                            customerId,
                                           );
                                         },
                                       ),

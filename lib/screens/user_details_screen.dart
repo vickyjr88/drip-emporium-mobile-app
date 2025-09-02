@@ -11,7 +11,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class UserDetailsScreen extends StatefulWidget {
-  final Function(String email, String name, String mobileNumber, String address)
+  final Function(String email, String name, String mobileNumber, String address, String customerId)
       onProceedToPayment;
 
   const UserDetailsScreen({super.key, required this.onProceedToPayment});
@@ -192,7 +192,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                 final customer = filteredCustomers[index];
                 return ListTile(
                   title: Text(customer.name),
-                  subtitle: Text(customer.email),
+                  subtitle: Text('${customer.email} - ${customer.phoneNumber}'),
                   onTap: () {
                     setState(() {
                       _selectedCustomer = customer;
@@ -343,13 +343,27 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           ),
         const SizedBox(height: 32.0),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             if (_formKey.currentState!.validate()) {
+              String customerId;
+              if (_selectedCustomer != null) {
+                customerId = _selectedCustomer!.id;
+              } else {
+                // Create a new customer and get the ID
+                final newUserRef = await _dataRepository.createOrUpdateUser(
+                  email: _emailController.text,
+                  displayName: _nameController.text,
+                  phoneNumber: _mobileController.text,
+                  address: _addressController.text,
+                );
+                customerId = newUserRef.id;
+              }
               widget.onProceedToPayment(
                 _emailController.text,
                 _nameController.text,
                 _mobileController.text,
                 _addressController.text,
+                customerId,
               );
             }
           },

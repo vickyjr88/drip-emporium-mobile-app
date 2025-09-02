@@ -75,16 +75,17 @@ class DataRepository {
     }
   }
 
-  Future<void> createOrUpdateUser({
-    required String uid,
+  Future<DocumentReference> createOrUpdateUser({
+    String? uid,
     required String email,
     String? displayName,
     String? photoURL,
     String? phoneNumber,
+    String? address,
     CustomerType? customerType,
   }) async {
     try {
-      final userRef = _firestore.collection('users').doc(uid);
+      final userRef = uid != null ? _firestore.collection('users').doc(uid) : _firestore.collection('users').doc();
       final userDoc = await userRef.get();
 
       final userData = {
@@ -92,6 +93,7 @@ class DataRepository {
         'displayName': displayName ?? '',
         'photoURL': photoURL ?? '',
         'phoneNumber': phoneNumber ?? '',
+        'address': address ?? '',
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
@@ -110,12 +112,13 @@ class DataRepository {
             CustomerType.client.toString().split('.').last;
 
         await userRef.set(userData);
-        print('Created new user document for UID: $uid');
+        print('Created new user document for UID: ${userRef.id}');
       } else {
         // Update existing user
         await userRef.update(userData);
-        print('Updated existing user document for UID: $uid');
+        print('Updated existing user document for UID: ${userRef.id}');
       }
+      return userRef;
     } catch (e) {
       print('Error creating/updating user: $e');
       throw Exception('Failed to create/update user: $e');
