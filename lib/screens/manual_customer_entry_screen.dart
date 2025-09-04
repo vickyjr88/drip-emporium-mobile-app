@@ -97,7 +97,15 @@ class _ManualCustomerEntryScreenState extends State<ManualCustomerEntryScreen> {
                     });
                   }
                 },
-                child: const Text('Save Customer'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                ),
+                child: const Text(
+                  'Save Customer',
+                  style: TextStyle(fontSize: 18.0),
+                ),
               ),
             ],
           ),

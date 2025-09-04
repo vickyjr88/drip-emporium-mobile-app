@@ -495,7 +495,17 @@ class DataRepository {
                     ), // Parse price as double, remove commas
                     'imageUrl': item['image_link'],
                     'description': item['description'],
-                    'link': item['link'], // New: Capture share link
+                    'link': () {
+                      final originalUri = Uri.tryParse(item['link'] ?? '');
+                      final path = originalUri != null ? originalUri.path : '';
+                      final storeName = item['stores']?.toString() ?? '';
+                      print('Original store name: $storeName'); // Debug print
+                      final subdomain = storeName.isNotEmpty
+                          ? '${storeName.toLowerCase().replaceAll(' ', '')}.'
+                          : '';
+                      print('Generated subdomain: $subdomain'); // Debug print
+                      return 'https://${subdomain}dripemporium.store${path}';
+                    }(), // New: Capture share link
                     'availability': item['availability'] ?? '',
                     'condition': item['condition'] ?? '',
                     'brand': item['brand'] ?? '',
