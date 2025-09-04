@@ -110,8 +110,8 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
 
 
   void _launchWhatsApp() async {
-    const phoneNumber = '254113206481';
-    const whatsappUrl = 'https://wa.me/$phoneNumber';
+    const mobileNumber = '254113206481';
+    const whatsappUrl = 'https://wa.me/$mobileNumber';
 
     final confirmed = await showDialog<bool>(
       context: context,

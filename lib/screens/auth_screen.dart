@@ -52,7 +52,7 @@ class _AuthScreenState extends State<AuthScreen> {
         email: user.email ?? '',
         displayName: user.displayName,
         photoURL: user.photoURL,
-        phoneNumber: user.phoneNumber,
+        mobileNumber: user.mobileNumber,
       );
     } catch (e) {
       print('Error creating/updating user document: $e');

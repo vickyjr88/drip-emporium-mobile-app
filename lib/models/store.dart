@@ -4,14 +4,14 @@ class Store {
   final String id;
   final String name;
   final String address;
-  final String phoneNumber;
+  final String mobileNumber;
   final String email;
 
   Store({
     required this.id,
     required this.name,
     required this.address,
-    required this.phoneNumber,
+    required this.mobileNumber,
     required this.email,
   });
 
@@ -21,7 +21,7 @@ class Store {
       id: doc.id,
       name: data['name'] ?? '',
       address: data['address'] ?? '',
-      phoneNumber: data['phoneNumber'] ?? '',
+      mobileNumber: data['mobileNumber'] ?? '',
       email: data['email'] ?? '',
     );
   }
@@ -30,7 +30,7 @@ class Store {
     return {
       'name': name,
       'address': address,
-      'phoneNumber': phoneNumber,
+      'mobileNumber': mobileNumber,
       'email': email,
     };
   }

@@ -60,7 +60,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         email: user.email ?? '',
         displayName: user.displayName,
         photoURL: user.photoURL,
-        phoneNumber: user.phoneNumber,
+        
       );
     } catch (e) {
       print('Error creating user document: $e');

@@ -22,7 +22,7 @@ class _AttendantFormDialogState extends State<AttendantFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _emailController;
-  late TextEditingController _phoneNumberController;
+  late TextEditingController _mobileNumberController;
   String? _selectedRole;
   Store? _selectedStore;
 
@@ -33,13 +33,13 @@ class _AttendantFormDialogState extends State<AttendantFormDialog> {
         TextEditingController(text: widget.userData['displayName'] ?? '');
     _emailController =
         TextEditingController(text: widget.userData['email'] ?? '');
-    _phoneNumberController =
+    _mobileNumberController =
         TextEditingController(text: widget.userData['mobileNumber'] ?? '');
 
     if (widget.existingAttender != null) {
       _nameController.text = widget.existingAttender!.name;
       _emailController.text = widget.existingAttender!.email;
-      _phoneNumberController.text = widget.existingAttender!.phoneNumber;
+      _mobileNumberController.text = widget.existingAttender!.mobileNumber;
       _selectedRole = widget.existingAttender!.role;
       // Find and set the existing store
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -59,7 +59,7 @@ class _AttendantFormDialogState extends State<AttendantFormDialog> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _phoneNumberController.dispose();
+    _mobileNumberController.dispose();
     super.dispose();
   }
 
@@ -100,7 +100,7 @@ class _AttendantFormDialogState extends State<AttendantFormDialog> {
                 },
               ),
               TextFormField(
-                controller: _phoneNumberController,
+                controller: _mobileNumberController,
                 decoration: const InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
@@ -187,7 +187,7 @@ class _AttendantFormDialogState extends State<AttendantFormDialog> {
                 email: _emailController.text,
                 storeId: _selectedStore!.id,
                 role: _selectedRole!,
-                phoneNumber: _phoneNumberController.text,
+                mobileNumber: _mobileNumberController.text,
               );
               Navigator.of(context).pop(attender); // Return attender object
             }

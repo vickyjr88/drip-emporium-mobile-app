@@ -217,7 +217,7 @@ class ProductDetailsScreen extends StatelessWidget {
                         avatar: const Icon(Icons.message, color: Colors.green),
                         label: const Text('Buy via WhatsApp'),
                         onPressed: () async {
-                          final phoneNumber =
+                          final mobileNumber =
                               '+254712345678'; // Replace with your WhatsApp number
                           final message =
                               'Hello, I would like to order the following product:\n'
@@ -225,7 +225,7 @@ class ProductDetailsScreen extends StatelessWidget {
                               'Price: KES ${product['price'].toStringAsFixed(2)}\n'
                               'Link: ${product['link']}';
                           final whatsappUrl =
-                              'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
+                              'https://wa.me/$mobileNumber?text=${Uri.encodeComponent(message)}';
 
                           if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
                             await launchUrl(Uri.parse(whatsappUrl));

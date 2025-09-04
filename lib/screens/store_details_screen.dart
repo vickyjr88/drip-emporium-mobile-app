@@ -12,8 +12,8 @@ class StoreDetailsScreen extends StatelessWidget {
 
   const StoreDetailsScreen({super.key, required this.store});
 
-  Future<void> _makePhoneCall(String phoneNumber) async {
-    final sanitizedNumber = sanitizePhoneNumber(phoneNumber);
+  Future<void> _makePhoneCall(String mobileNumber) async {
+    final sanitizedNumber = sanitizeMobileNumber(mobileNumber);
     final Uri launchUri = Uri(
       scheme: 'tel',
       path: sanitizedNumber,
@@ -27,8 +27,8 @@ class StoreDetailsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _launchWhatsApp(String phoneNumber) async {
-    final sanitizedNumber = sanitizePhoneNumber(phoneNumber);
+  Future<void> _launchWhatsApp(String mobileNumber) async {
+    final sanitizedNumber = sanitizeMobileNumber(mobileNumber);
     final Uri launchUri = Uri.parse('https://wa.me/$sanitizedNumber');
     if (await canLaunchUrl(launchUri)) {
       await launchUrl(launchUri);
@@ -61,7 +61,7 @@ class StoreDetailsScreen extends StatelessWidget {
             children: [
               Text('Email: ${attendant.email}'),
               const SizedBox(height: 8),
-              Text('Phone: ${attendant.phoneNumber}'),
+              Text('Phone: ${attendant.mobileNumber}'),
               const SizedBox(height: 8),
               Text('Role: ${attendant.role}'),
               const SizedBox(height: 20),
@@ -70,11 +70,11 @@ class StoreDetailsScreen extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.phone, size: 30),
-                    onPressed: () => _makePhoneCall(attendant.phoneNumber),
+                    onPressed: () => _makePhoneCall(attendant.mobileNumber),
                   ),
                   IconButton(
                     icon: const Icon(Icons.message, size: 30, color: Colors.green),
-                    onPressed: () => _launchWhatsApp(attendant.phoneNumber),
+                    onPressed: () => _launchWhatsApp(attendant.mobileNumber),
                   ),
                   IconButton(
                     icon: const Icon(Icons.email, size: 30),
@@ -130,7 +130,7 @@ class StoreDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Phone: ${store.phoneNumber}',
+              'Phone: ${store.mobileNumber}',
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 8),
@@ -144,11 +144,11 @@ class StoreDetailsScreen extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.phone, size: 30),
-                  onPressed: () => _makePhoneCall(store.phoneNumber),
+                  onPressed: () => _makePhoneCall(store.mobileNumber),
                 ),
                 IconButton(
                   icon: const Icon(Icons.message, size: 30, color: Colors.green), // WhatsApp icon
-                  onPressed: () => _launchWhatsApp(store.phoneNumber),
+                  onPressed: () => _launchWhatsApp(store.mobileNumber),
                 ),
                 IconButton(
                   icon: const Icon(Icons.email, size: 30),

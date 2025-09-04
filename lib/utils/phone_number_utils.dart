@@ -1,9 +1,9 @@
-String sanitizePhoneNumber(String phoneNumber) {
-  phoneNumber = phoneNumber.replaceAll(' ', '');
-  if (phoneNumber.startsWith('0')) {
-    phoneNumber = '254${phoneNumber.substring(1)}';
-  } else if (phoneNumber.startsWith('+')) {
-    phoneNumber = phoneNumber.substring(1);
+String sanitizeMobileNumber(String mobileNumber) {
+  mobileNumber = mobileNumber.replaceAll(' ', '');
+  if (mobileNumber.startsWith('0')) {
+    mobileNumber = '254${mobileNumber.substring(1)}';
+  } else if (mobileNumber.startsWith('+')) {
+    mobileNumber = mobileNumber.substring(1);
   }
-  return phoneNumber;
+  return mobileNumber;
 }

@@ -1,31 +1,31 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as bringModule;
 
 enum CustomerType { client, reseller, shop }
 
 class Customer {
   final String id;
-  final String name;
+  final String displayName;
   final String email;
-  final String phoneNumber;
+  final String mobileNumber;
   final String address;
   final CustomerType customerType;
 
   Customer({
     required this.id,
-    required this.name,
+    required this.displayName,
     required this.email,
-    required this.phoneNumber,
+    required this.mobileNumber,
     required this.address,
     required this.customerType,
   });
 
-  factory Customer.fromFirestore(DocumentSnapshot doc) {
+  factory Customer.fromFirestore(bringModule.DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
     return Customer(
       id: doc.id,
-      name: data['name'] ?? '',
+      displayName: data['displayName'] ?? '',
       email: data['email'] ?? '',
-      phoneNumber: data['phoneNumber'] ?? '',
+      mobileNumber: data['mobileNumber'] ?? '',
       address: data['address'] ?? '',
       customerType: CustomerType.values.firstWhere(
         (e) =>
@@ -38,9 +38,9 @@ class Customer {
 
   Map<String, dynamic> toFirestore() {
     return {
-      'name': name,
+      'name': displayName,
       'email': email,
-      'phoneNumber': phoneNumber,
+      'mobileNumber': mobileNumber,
       'address': address,
       'customerType': customerType.toString().split('.').last,
     };

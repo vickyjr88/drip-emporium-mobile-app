@@ -71,6 +71,14 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   }
 
   void _populateFields() async {
+    if (_selectedCustomer != null) {
+      _emailController.text = _selectedCustomer!.email;
+      _nameController.text = _selectedCustomer!.displayName;
+      _mobileController.text = _selectedCustomer!.mobileNumber;
+      _addressController.text = _selectedCustomer!.address;
+      return;
+    }
+
     final user = _auth.currentUser;
     if (user != null) {
       _emailController.text = user.email ?? '';
@@ -184,23 +192,23 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                 (BuildContext context, SearchController controller) {
               final keyword = controller.value.text;
               final filteredCustomers = _customers.where((customer) {
-                return customer.name.toLowerCase().contains(keyword.toLowerCase()) ||
+                return customer.displayName.toLowerCase().contains(keyword.toLowerCase()) ||
                     customer.email.toLowerCase().contains(keyword.toLowerCase());
               }).toList();
 
               return List<ListTile>.generate(filteredCustomers.length, (int index) {
                 final customer = filteredCustomers[index];
                 return ListTile(
-                  title: Text(customer.name),
-                  subtitle: Text('${customer.email} - ${customer.phoneNumber}'),
+                  title: Text(customer.displayName),
+                  subtitle: Text('${customer.displayName.isNotEmpty ? customer.displayName : customer.email} - ${customer.mobileNumber.isNotEmpty ? customer.mobileNumber :customer.email}'),
                   onTap: () {
                     setState(() {
                       _selectedCustomer = customer;
                       _emailController.text = customer.email;
-                      _nameController.text = customer.name;
-                      _mobileController.text = customer.phoneNumber;
+                      _nameController.text = customer.displayName;
+                      _mobileController.text = customer.mobileNumber;
                       _addressController.text = customer.address;
-                      controller.closeView(customer.name);
+                      controller.closeView(customer.displayName);
                     });
                   },
                 );
@@ -353,7 +361,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                 final newUserRef = await _dataRepository.createOrUpdateUser(
                   email: _emailController.text,
                   displayName: _nameController.text,
-                  phoneNumber: _mobileController.text,
+                  mobileNumber: _mobileController.text,
                   address: _addressController.text,
                 );
                 customerId = newUserRef.id;

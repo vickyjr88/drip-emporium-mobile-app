@@ -80,7 +80,7 @@ class DataRepository {
     required String email,
     String? displayName,
     String? photoURL,
-    String? phoneNumber,
+    String? mobileNumber,
     String? address,
     CustomerType? customerType,
   }) async {
@@ -92,7 +92,7 @@ class DataRepository {
         'email': email,
         'displayName': displayName ?? '',
         'photoURL': photoURL ?? '',
-        'phoneNumber': phoneNumber ?? '',
+        'mobileNumber': mobileNumber ?? '',
         'address': address ?? '',
         'updatedAt': FieldValue.serverTimestamp(),
       };

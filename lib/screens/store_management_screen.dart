@@ -40,7 +40,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
           id: DateTime.now().toIso8601String(), // Simple unique ID for now
           name: _nameController.text,
           address: _addressController.text,
-          phoneNumber: _phoneController.text,
+          mobileNumber: _phoneController.text,
           email: _emailController.text,
         );
         await storeProvider.addStore(newStore);
@@ -50,7 +50,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
           id: _editingStore!.id,
           name: _nameController.text,
           address: _addressController.text,
-          phoneNumber: _phoneController.text,
+          mobileNumber: _phoneController.text,
           email: _emailController.text,
         );
         await storeProvider.updateStore(updatedStore);
@@ -66,7 +66,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
       _editingStore = store;
       _nameController.text = store.name;
       _addressController.text = store.address;
-      _phoneController.text = store.phoneNumber;
+      _phoneController.text = store.mobileNumber;
       _emailController.text = store.email;
     });
     _showStoreDialog();

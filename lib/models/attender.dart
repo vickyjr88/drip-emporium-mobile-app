@@ -6,7 +6,7 @@ class Attender {
   final String email;
   final String storeId;
   final String role;
-  final String phoneNumber;
+  final String mobileNumber;
 
   Attender({
     required this.id,
@@ -14,7 +14,7 @@ class Attender {
     required this.email,
     required this.storeId,
     required this.role,
-    required this.phoneNumber,
+    required this.mobileNumber,
   });
 
   factory Attender.fromFirestore(DocumentSnapshot doc) {
@@ -25,7 +25,7 @@ class Attender {
       email: data['email'] ?? '',
       storeId: data['storeId'] ?? '',
       role: data['role'] ?? '',
-      phoneNumber: data['phoneNumber'] ?? '',
+      mobileNumber: data['mobileNumber'] ?? '',
     );
   }
 
@@ -35,7 +35,7 @@ class Attender {
       'email': email,
       'storeId': storeId,
       'role': role,
-      'phoneNumber': phoneNumber,
+      'mobileNumber': mobileNumber,
     };
   }
 }

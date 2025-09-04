@@ -146,7 +146,7 @@ class _UserDetailsViewScreenState extends State<UserDetailsViewScreen> {
                       leading: const Icon(Icons.phone),
                       title: Text(widget.userData['mobileNumber'] ?? 'No mobile number'),
                       onTap: () => _launchURL(
-                          'tel:${sanitizePhoneNumber(widget.userData['mobileNumber'])}'),
+                          'tel:${sanitizeMobileNumber(widget.userData['mobileNumber'])}'),
                     ),
                     ListTile(
                       leading: const Icon(Icons.location_on),

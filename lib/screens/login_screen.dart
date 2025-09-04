@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
         email: user.email ?? '',
         displayName: user.displayName,
         photoURL: user.photoURL,
-        phoneNumber: user.phoneNumber,
+        
       );
 
       // Check if user is admin and create attendant profile if needed
@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
           // Get phone number from user record
           final userDetails = await dataRepository.getUserDetails(user.uid);
-          final phoneNumber = userDetails?['phoneNumber'] ?? '';
+          final mobileNumber = userDetails?['mobileNumber'] ?? '';
 
           final newAttender = Attender(
             id: user.uid, // It's better to use the user's UID as the attendant ID for consistency
@@ -126,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
             email: user.email ?? '',
             storeId: store.id,
             role: 'Attendant',
-            phoneNumber: phoneNumber,
+            mobileNumber: mobileNumber,
           );
           await dataRepository.addAttender(newAttender);
         }

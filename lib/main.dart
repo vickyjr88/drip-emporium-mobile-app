@@ -92,7 +92,7 @@ class _MyAppState extends State<MyApp> {
           email: user.email ?? '',
           displayName: user.displayName,
           photoURL: user.photoURL,
-          phoneNumber: user.phoneNumber,
+          
         );
         print('User document checked/updated for existing user: ${user.uid}');
       }
@@ -618,7 +618,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color: Colors.green,
                                       ), // Using message icon and green color
                                       onPressed: () async {
-                                        final phoneNumber =
+                                        final mobileNumber =
                                             '254113206481'; // Replace with your WhatsApp number
                                         final message =
                                             'Hello, I would like to order the following product:\n' +
@@ -626,7 +626,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             'Price: KES ${product['price'].toStringAsFixed(2)}\n' +
                                             'Link: ${product['link']}';
                                         final whatsappUrl =
-                                            'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
+                                            'https://wa.me/$mobileNumber?text=${Uri.encodeComponent(message)}';
 
                                         if (await canLaunchUrl(
                                           Uri.parse(whatsappUrl),

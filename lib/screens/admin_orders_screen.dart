@@ -96,8 +96,8 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
   }
 
   // Helper function to make a phone call
-  Future<void> _makePhoneCall(String phoneNumber) async {
-    final sanitizedNumber = sanitizePhoneNumber(phoneNumber);
+  Future<void> _makePhoneCall(String mobileNumber) async {
+    final sanitizedNumber = sanitizeMobileNumber(mobileNumber);
     final Uri launchUri = Uri(scheme: 'tel', path: sanitizedNumber);
     if (await canLaunchUrl(launchUri)) {
       await launchUrl(launchUri);
@@ -109,8 +109,8 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
   }
 
   // Helper function to launch WhatsApp
-  Future<void> _launchWhatsApp(String phoneNumber) async {
-    final sanitizedNumber = sanitizePhoneNumber(phoneNumber);
+  Future<void> _launchWhatsApp(String mobileNumber) async {
+    final sanitizedNumber = sanitizeMobileNumber(mobileNumber);
     final Uri launchUri = Uri.parse('https://wa.me/$sanitizedNumber');
     if (await canLaunchUrl(launchUri)) {
       await launchUrl(launchUri);
@@ -232,10 +232,10 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                               IconButton(
                                 icon: const Icon(Icons.phone),
                                 onPressed: () {
-                                  final phoneNumber =
+                                  final mobileNumber =
                                       order['mobileNumber'] ?? '';
-                                  if (phoneNumber.isNotEmpty) {
-                                    _makePhoneCall(phoneNumber);
+                                  if (mobileNumber.isNotEmpty) {
+                                    _makePhoneCall(mobileNumber);
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
@@ -252,10 +252,10 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                                   Icons.chat,
                                 ), // Using Icons.chat for WhatsApp
                                 onPressed: () {
-                                  final phoneNumber =
+                                  final mobileNumber =
                                       order['mobileNumber'] ?? '';
-                                  if (phoneNumber.isNotEmpty) {
-                                    _launchWhatsApp(phoneNumber);
+                                  if (mobileNumber.isNotEmpty) {
+                                    _launchWhatsApp(mobileNumber);
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
