@@ -1,0 +1,8 @@
+What's new in this update:
+
+• Fresh new look across the whole app — updated colors, fonts, and layout to match our website
+• Browse Featured products with a single tap
+• Product pages now show "You might also like" so it's easier to find similar styles
+• Buy via WhatsApp is now available right from your cart, not just product pages
+• Faster, more reliable shopping experience with improved loading states
+• Various bug fixes and performance improvements

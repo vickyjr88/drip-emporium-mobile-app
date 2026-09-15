@@ -26,6 +26,7 @@ class ProductsProvider with ChangeNotifier {
   String? _error;
   String? _selectedCategory; // null = all
   String _search = '';
+  bool _featuredOnly = false;
 
   Timer? _searchDebounce;
   // Guards against an out-of-order slow response overwriting a newer fast
@@ -39,6 +40,7 @@ class ProductsProvider with ChangeNotifier {
   String? get error => _error;
   String? get selectedCategory => _selectedCategory;
   String get search => _search;
+  bool get featuredOnly => _featuredOnly;
 
   Future<void> load() async {
     await Future.wait([_fetchCategories(), _fetchProducts()]);
@@ -58,10 +60,15 @@ class ProductsProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final results = await _repository.fetchProducts(
-        category: _selectedCategory,
-        search: _search.isEmpty ? null : _search,
-      );
+      // Featured is its own backend endpoint (no category/search support),
+      // not a filter on the main list -- selecting it swaps the data source
+      // entirely rather than adding a query param the API doesn't accept.
+      final results = _featuredOnly
+          ? await _repository.fetchFeatured(limit: 50)
+          : await _repository.fetchProducts(
+              category: _selectedCategory,
+              search: _search.isEmpty ? null : _search,
+            );
       if (requestId != _requestId) return; // superseded by a newer request
       _products = results;
     } catch (_) {
@@ -89,6 +96,18 @@ class ProductsProvider with ChangeNotifier {
     // category (no filter selected yet) so a bookmark/deep link to it is
     // unambiguous -- mirrors the web storefront's resolveShopCategory().
     _selectedCategory = slug == 'all' ? null : slug;
+    // Featured has no category filter server-side -- picking a real category
+    // means leaving the featured rail.
+    _featuredOnly = false;
+    unawaited(_fetchProducts());
+  }
+
+  /// Toggling Featured clears the category selection (mutually exclusive,
+  /// per the backend's separate /shop/products/featured endpoint) but keeps
+  /// the top-level "All" chip visually selected when off.
+  void setFeaturedOnly(bool value) {
+    _featuredOnly = value;
+    _selectedCategory = null;
     unawaited(_fetchProducts());
   }
 

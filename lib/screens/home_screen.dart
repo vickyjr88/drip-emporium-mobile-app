@@ -134,10 +134,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: const EdgeInsets.only(right: AppSpacing.xs),
                           child: ChoiceChip(
                             label: const Text('All'),
-                            selected: products.selectedCategory == null,
+                            selected: products.selectedCategory == null && !products.featuredOnly,
                             onSelected: (selected) {
                               if (selected) products.setCategory(null);
                             },
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: AppSpacing.xs),
+                          child: ChoiceChip(
+                            avatar: const Icon(Icons.star, size: 16),
+                            label: const Text('Featured'),
+                            selected: products.featuredOnly,
+                            onSelected: (selected) => products.setFeaturedOnly(selected),
                           ),
                         ),
                         ...products.categories.map((category) {

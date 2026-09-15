@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/api_config.dart';
@@ -154,7 +155,7 @@ class CartScreen extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () => buyCartViaWhatsApp(context, cart.lines),
                     style: OutlinedButton.styleFrom(foregroundColor: AppColors.go, side: const BorderSide(color: AppColors.go)),
-                    icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                    icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 18),
                     label: const Text('BUY VIA WHATSAPP'),
                   ),
                 ),

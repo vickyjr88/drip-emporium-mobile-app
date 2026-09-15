@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,11 +10,13 @@ import '../models/product.dart';
 import '../providers/cart_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../services/cart_lead_service.dart';
+import '../services/shop_repository.dart';
 import 'dart:async';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/cart_icon_button.dart';
 import '../widgets/favorite_toggle.dart';
+import '../widgets/section_header.dart';
 import '../widgets/share_product.dart';
 import 'home_screen.dart' show formatKes;
 
@@ -28,11 +31,27 @@ class ProductDetailsScreen extends StatefulWidget {
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   String? _selectedVariantId;
+  // The Product passed in usually comes straight from the grid/search list
+  // (GET /shop/products), which never includes `related` -- only the
+  // single-product endpoint (GET /shop/products/:slug) does. Navigation
+  // stays instant (no spinner before the page opens) by using
+  // widget.product as-is, then fetching the full detail in the background
+  // to pick up `related` once it arrives.
+  List<Product> _related = [];
 
   @override
   void initState() {
     super.initState();
     _selectedVariantId = _defaultVariantId();
+    _related = widget.product.related;
+    if (_related.isEmpty) _loadRelated();
+  }
+
+  Future<void> _loadRelated() async {
+    final full = await context.read<ShopRepository>().fetchProduct(widget.product.slug);
+    if (mounted && full != null && full.related.isNotEmpty) {
+      setState(() => _related = full.related);
+    }
   }
 
   /// Default selection precedence, matching the web storefront exactly:
@@ -130,13 +149,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         backgroundColor: AppColors.go,
                         foregroundColor: Colors.white,
                       ),
-                      icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                      icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 18),
                       label: const Text('BUY VIA WHATSAPP'),
                     ),
                   ),
                 ],
               ),
             ),
+            if (_related.isNotEmpty) _RelatedProducts(products: _related),
           ],
         ),
       ),
@@ -412,6 +432,103 @@ class _ExpandableDescriptionState extends State<_ExpandableDescription> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// "You might also like" -- a horizontal rail of same-category alternatives,
+/// embedded directly on the product-details response (`related`) so a
+/// sold-out size or a browse that doesn't convert isn't a dead end.
+class _RelatedProducts extends StatelessWidget {
+  const _RelatedProducts({required this.products});
+
+  final List<Product> products;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(title: 'You might also like'),
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(
+            height: 240,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: products.length,
+              separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.md),
+              itemBuilder: (context, index) => _RelatedProductCard(product: products[index]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RelatedProductCard extends StatelessWidget {
+  const _RelatedProductCard({required this.product});
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = product.primaryImageUrl;
+    return SizedBox(
+      width: 140,
+      child: Material(
+        color: AppColors.surface,
+        child: InkWell(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ProductDetailsScreen(product: product)),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(border: Border.all(color: AppColors.line, width: AppSpacing.hairline)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AspectRatio(
+                  aspectRatio: 4 / 5,
+                  child: imageUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(color: AppColors.de050),
+                          errorWidget: (context, url, error) => Container(
+                            color: AppColors.de050,
+                            child: const Icon(Icons.broken_image_outlined, color: AppColors.muted),
+                          ),
+                        )
+                      : Container(color: AppColors.de050),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xs),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.name,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        product.priceLabel(formatKes),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.royal, fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

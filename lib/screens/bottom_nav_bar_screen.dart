@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/api_config.dart';
@@ -92,7 +93,7 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
               onPressed: _launchWhatsApp,
               backgroundColor: AppColors.go,
               foregroundColor: Colors.white,
-              child: const Icon(Icons.chat_bubble_outline),
+              child: const FaIcon(FontAwesomeIcons.whatsapp),
             )
           : null,
       bottomNavigationBar: BottomNavigationBar(

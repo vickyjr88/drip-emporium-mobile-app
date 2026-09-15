@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import '../models/cart_line.dart';
 import '../providers/cart_provider.dart';
@@ -227,7 +228,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () => buyCartViaWhatsApp(context, cart.lines),
                         style: OutlinedButton.styleFrom(foregroundColor: AppColors.go, side: const BorderSide(color: AppColors.go)),
-                        icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                        icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 18),
                         label: const Text('MESSAGE US ON WHATSAPP'),
                       ),
                     ),

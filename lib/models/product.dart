@@ -108,6 +108,7 @@ class Product {
     required this.anyInStock,
     required this.onOffer,
     required this.offerLabel,
+    this.related = const [],
   });
 
   final String id;
@@ -126,6 +127,11 @@ class Product {
   final bool anyInStock;
   final bool onOffer;
   final String? offerLabel;
+  /// A few alternatives from the same category ("you could also be
+  /// interested in..."), embedded directly on the product-details response
+  /// by the backend -- present only on `GET /shop/products/:slug`, never on
+  /// a grid/list result, so it's always empty there.
+  final List<Product> related;
 
   String? get primaryImageUrl => imageUrls.isNotEmpty ? imageUrls.first : null;
 
@@ -148,6 +154,11 @@ class Product {
 
     final categoryJson = json['category'];
 
+    final relatedJson = json['related'];
+    final related = relatedJson is List
+        ? relatedJson.whereType<Map<String, dynamic>>().map(Product.fromJson).toList()
+        : <Product>[];
+
     return Product(
       id: _strOr(json['id'], ''),
       slug: _strOr(json['slug'], ''),
@@ -165,6 +176,7 @@ class Product {
       anyInStock: _bool(json['anyInStock']),
       onOffer: _bool(json['onOffer']),
       offerLabel: _str(json['offerLabel']),
+      related: related,
     );
   }
 }
