@@ -1,19 +1,16 @@
-import 'dart:async';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:drip_emporium/screens/cart_screen.dart';
-import 'package:drip_emporium/screens/profile_screen.dart';
-import 'package:drip_emporium/services/payment_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:drip_emporium/main.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:drip_emporium/screens/login_screen.dart';
-import '../screens/admin_dashboard_screen.dart';
+import '../config/api_config.dart';
+import '../providers/cart_provider.dart';
+import '../theme/app_colors.dart';
+import 'cart_screen.dart';
+import 'favorites_screen.dart';
+import 'home_screen.dart';
+import 'profile_screen.dart';
 
 class BottomNavBarScreen extends StatefulWidget {
-  final PaymentService paymentService;
-  const BottomNavBarScreen({super.key, required this.paymentService});
+  const BottomNavBarScreen({super.key});
 
   @override
   State<BottomNavBarScreen> createState() => _BottomNavBarScreenState();
@@ -21,97 +18,20 @@ class BottomNavBarScreen extends StatefulWidget {
 
 class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
   int _selectedIndex = 0;
-  bool _isSuperAdmin = false;
-  List<Widget> _pages = [];
-  StreamSubscription<User?>? _authSubscription;
 
-  @override
-  void initState() {
-    super.initState();
-    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      _checkIfSuperAdmin();
-    });
-  }
-
-  @override
-  void dispose() {
-    _authSubscription?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _checkIfSuperAdmin() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      if (mounted) {
-        setState(() {
-          _isSuperAdmin = false;
-          _buildPages();
-        });
-      }
-      return;
-    }
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('superAdmins')
-          .doc(user.uid)
-          .get();
-      if (mounted) {
-        setState(() {
-          _isSuperAdmin = doc.exists;
-          _buildPages();
-        });
-      }
-    } catch (e) {
-      print('Error checking super admin status: $e');
-      if (mounted) {
-        setState(() {
-          _isSuperAdmin = false;
-          _buildPages();
-        });
-      }
-    }
-  }
-
-  void _buildPages() {
-    _pages = <Widget>[
-      HomeScreen(paymentService: widget.paymentService),
-      CartScreen(paymentService: widget.paymentService),
-      const ProfileScreen(),
-      if (_isSuperAdmin) const AdminDashboardScreen(),
-    ];
-  }
+  static const _pages = <Widget>[
+    HomeScreen(),
+    CartScreen(),
+    FavoritesScreen(),
+    ProfileScreen(),
+  ];
 
   void _onItemTapped(int index) {
-    if (index == 1) {
-      _launchWhatsApp();
-      return;
-    }
-
-    int pageIndex = index;
-    if (index > 1) {
-      pageIndex = index - 1;
-    }
-
-    if (pageIndex == 2) { // Profile/Account tab
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-        return;
-      }
-    }
-
-    setState(() {
-      _selectedIndex = pageIndex;
-    });
+    setState(() => _selectedIndex = index);
   }
 
-
-  void _launchWhatsApp() async {
-    const mobileNumber = '254113206481';
-    const whatsappUrl = 'https://wa.me/$mobileNumber';
+  Future<void> _launchWhatsApp() async {
+    final whatsappUrl = 'https://wa.me/${ApiConfig.defaultWhatsAppNumber}';
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -133,11 +53,11 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: const Text('CANCEL'),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Chat'),
+              child: const Text('CHAT'),
             ),
           ],
         );
@@ -147,13 +67,11 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
     if (confirmed == true) {
       if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
         await launchUrl(Uri.parse(whatsappUrl));
-      } else {
+      } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Could not launch WhatsApp. Please ensure it is installed.',
-            ),
-            backgroundColor: Colors.red,
+            content: Text('Could not launch WhatsApp. Please ensure it is installed.'),
+            backgroundColor: AppColors.danger,
           ),
         );
       }
@@ -162,42 +80,45 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_pages.isEmpty) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    final navBarItems = <BottomNavigationBarItem>[
-      const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-      const BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Message'),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.shopping_cart),
-        label: 'Cart',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.account_circle),
-        label: 'Account',
-      ),
-      if (_isSuperAdmin)
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.admin_panel_settings),
-          label: 'Admin',
-        ),
-    ];
-
-    int currentIndex = _selectedIndex;
-    if (_selectedIndex > 0) {
-      currentIndex = _selectedIndex + 1;
-    }
+    // Hidden on the Cart tab (index 1) -- that screen already offers its own
+    // "Buy via WhatsApp" action, and the FAB would otherwise sit on top of
+    // its pinned bottom bar.
+    final showFab = _selectedIndex != 1;
 
     return Scaffold(
-      body: _pages.elementAt(_selectedIndex),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
+      floatingActionButton: showFab
+          ? FloatingActionButton(
+              onPressed: _launchWhatsApp,
+              backgroundColor: AppColors.go,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.chat_bubble_outline),
+            )
+          : null,
       bottomNavigationBar: BottomNavigationBar(
-        items: navBarItems,
-        currentIndex: currentIndex,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Colors.grey,
+        items: [
+          const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Consumer<CartProvider>(
+              builder: (context, cart, child) => Badge.count(
+                count: cart.count,
+                isLabelVisible: cart.count > 0,
+                child: const Icon(Icons.shopping_cart_outlined),
+              ),
+            ),
+            activeIcon: Consumer<CartProvider>(
+              builder: (context, cart, child) => Badge.count(
+                count: cart.count,
+                isLabelVisible: cart.count > 0,
+                child: const Icon(Icons.shopping_cart),
+              ),
+            ),
+            label: 'Cart',
+          ),
+          const BottomNavigationBarItem(icon: Icon(Icons.favorite_border), activeIcon: Icon(Icons.favorite), label: 'Favorites'),
+          const BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Account'),
+        ],
+        currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
       ),

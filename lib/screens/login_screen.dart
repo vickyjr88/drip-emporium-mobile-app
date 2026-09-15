@@ -1,13 +1,17 @@
-import 'package:drip_emporium/models/attender.dart';
-import 'package:drip_emporium/screens/forgot_password_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:drip_emporium/screens/signup_screen.dart';
-import 'package:drip_emporium/services/data_repository.dart';
-import 'package:drip_emporium/screens/profile_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import '../providers/customer_auth_provider.dart';
+import '../providers/favorites_provider.dart';
+import '../services/api_client.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
+import '../widgets/auth_branding_header.dart';
+import 'forgot_password_screen.dart';
+import 'signup_screen.dart';
 
+/// Rewired against the real backend's JWT auth. Google Sign-In is dropped
+/// for this phase -- there is no backend OAuth exchange endpoint, and
+/// building one is separate backend work outside this migration.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -16,124 +20,39 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _submitting = false;
+  bool _obscurePassword = true;
 
-  Future<UserCredential?> _signInWithGoogle() async {
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _submitting = true);
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        // The user canceled the sign-in
-        return null;
-      }
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      final UserCredential userCredential = await _auth.signInWithCredential(
-        credential,
-      );
-
-      // Create/update user document in Firestore
-      await _createOrUpdateUserDocument(userCredential.user!);
-
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const ProfileScreen()),
-      );
-      return userCredential;
-    } catch (e) {
+      await context.read<CustomerAuthProvider>().login(_emailController.text.trim(), _passwordController.text);
+      // Favorites has no listener on auth state changes (ChangeNotifier has
+      // no cross-notifier wiring primitive) -- refreshed explicitly here so
+      // a just-logged-in customer's favorites appear immediately.
+      if (mounted) await context.read<FavoritesProvider>().refresh();
+      if (mounted) Navigator.of(context).pop();
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message), backgroundColor: AppColors.danger));
+    } catch (_) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to sign in with Google. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Could not sign in. Check your connection and try again.'), backgroundColor: AppColors.danger),
       );
-      return null;
-    }
-  }
-
-  Future<void> _signInWithEmailAndPassword() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final userCredential = await _auth.signInWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text,
-        );
-
-        // Create/update user document in Firestore
-        await _createOrUpdateUserDocument(userCredential.user!);
-
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const ProfileScreen()),
-        );
-      } on FirebaseAuthException catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message ?? 'Failed to sign in.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _createOrUpdateUserDocument(User user) async {
-    try {
-      final dataRepository = DataRepository();
-      await dataRepository.createOrUpdateUser(
-        uid: user.uid,
-        email: user.email ?? '',
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        
-      );
-
-      // Check if user is admin and create attendant profile if needed
-      final doc = await FirebaseFirestore.instance
-          .collection('superAdmins')
-          .doc(user.uid)
-          .get();
-
-      if (doc.exists) {
-        // User is a super admin, check if an attendant profile with this email exists
-        final querySnapshot = await FirebaseFirestore.instance
-            .collection('attenders')
-            .where('email', isEqualTo: user.email)
-            .limit(1)
-            .get();
-
-        if (querySnapshot.docs.isEmpty) {
-          // Attendant profile doesn't exist, create one
-          await dataRepository.initDatabase();
-          final stores = await dataRepository.getStores();
-          final store = stores.firstWhere(
-            (s) => s.name == 'Drip Emporium Store',
-            orElse: () => throw Exception('Drip Emporium Store not found'),
-          );
-
-          // Get phone number from user record
-          final userDetails = await dataRepository.getUserDetails(user.uid);
-          final mobileNumber = userDetails?['mobileNumber'] ?? '';
-
-          final newAttender = Attender(
-            id: user.uid, // It's better to use the user's UID as the attendant ID for consistency
-            name: user.displayName ?? 'Admin User',
-            email: user.email ?? '',
-            storeId: store.id,
-            role: 'Attendant',
-            mobileNumber: mobileNumber,
-          );
-          await dataRepository.addAttender(newAttender);
-        }
-      }
-    } catch (e) {
-      print('Error creating/updating user document or attendant profile: $e');
-      // Don't show error to user as this shouldn't block login
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -141,94 +60,60 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const AuthBrandingHeader(),
+                const SizedBox(height: AppSpacing.xxl),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) => (value == null || value.isEmpty) ? 'Please enter your email' : null,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _signInWithEmailAndPassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
+                const SizedBox(height: AppSpacing.md),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
                   ),
-                  child: const Text('Login'),
+                  obscureText: _obscurePassword,
+                  validator: (value) => (value == null || value.isEmpty) ? 'Please enter your password' : null,
                 ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    await _signInWithGoogle();
+                const SizedBox(height: AppSpacing.lg),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _submitting ? null : _login,
+                    child: _submitting
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('LOGIN'),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()));
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                  ),
-                  icon: Image.asset(
-                    'assets/images/google_logo.png',
-                    height: 24.0,
-                  ),
-                  label: const Text('Sign In with Google'),
+                  child: const Text('Forgot Password?'),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const ForgotPasswordScreen(),
-                    ),
-                  );
-                },
-                child: const Text('Forgot Password?'),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const SignUpScreen(),
-                    ),
-                  );
-                },
-                child: const Text('Don\'t have an account? Sign up'),
-              ),
-            ],
+                const SizedBox(height: AppSpacing.sm),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SignUpScreen()));
+                  },
+                  child: const Text('Don\'t have an account? Sign up'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

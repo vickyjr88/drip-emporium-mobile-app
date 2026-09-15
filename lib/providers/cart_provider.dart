@@ -1,188 +1,122 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // New import
-import 'dart:convert'; // For JSON encoding/decoding
-import '../models/customer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/cart_line.dart';
 
+const _cartPrefsKey = 'de_cart_v1';
+
+/// The shopping cart, rewritten against the real API's variant model.
+///
+/// Keyed by variantId, not productId -- two sizes of the same shoe are now
+/// two separate lines, which the old productId-keyed Map could not express
+/// at all. Discount/bargain/customerType are gone entirely: the backend
+/// prices every line from the variant id at checkout, so a client-side price
+/// override is not a feature to preserve here, it was the mechanism of a
+/// real revenue bug (checkout charged the pre-discount total while
+/// displaying/recording the post-discount one).
 class CartProvider with ChangeNotifier {
-  final Map<String, Map<String, dynamic>> _items = {};
-  CustomerType _customerType = CustomerType.client; // Default customer type
-  double _discountPercentage = 0.0;
-  double _bargainAmount = 0.0;
+  final List<CartLine> _lines = [];
+
+  /// False until the initial SharedPreferences load has completed. Nothing
+  /// persists before this is true, so a slow cold-start load can never
+  /// silently overwrite a cart that was already saved from a previous
+  /// session.
+  bool ready = false;
 
   CartProvider() {
-    _loadCartFromPrefs(); // Load cart when provider is initialized
+    _load();
   }
 
-  Map<String, Map<String, dynamic>> get items => _items;
+  List<CartLine> get lines => List.unmodifiable(_lines);
 
-  int get itemCount => _items.length;
+  /// Sum of quantities across all lines -- the old `itemCount` was
+  /// `_items.length`, distinct lines only, which undercounted the badge the
+  /// moment any line had quantity > 1.
+  int get count => _lines.fold(0, (sum, line) => sum + line.quantity);
 
-  CustomerType get customerType => _customerType;
-  double get discountPercentage => _discountPercentage;
-  double get bargainAmount => _bargainAmount;
+  num get subtotal => _lines.fold<num>(0, (sum, line) => sum + line.lineTotal);
 
-  void setCustomerType(CustomerType type) {
-    _customerType = type;
-    notifyListeners();
-  }
-
-  void applyDiscount(double percentage) {
-    if (percentage >= 0 && percentage <= 100) {
-      _discountPercentage = percentage / 100.0;
-      _bargainAmount = 0.0; // Clear bargain if discount is applied
-      notifyListeners();
+  CartLine? _findByVariant(String variantId) {
+    for (final line in _lines) {
+      if (line.variantId == variantId) return line;
     }
+    return null;
   }
 
-  void setBargainAmount(double amount) {
-    if (amount >= 0) {
-      _bargainAmount = amount;
-      _discountPercentage = 0.0; // Clear discount if bargain is applied
-      notifyListeners();
-    }
-  }
-
-  double get totalAmount {
-    double total = 0.0;
-    _items.forEach((key, item) {
-      total += item['price'] * item['quantity'];
-    });
-    return total;
-  }
-
-  double get finalPrice {
-    double calculatedPrice = totalAmount;
-    if (_discountPercentage > 0) {
-      calculatedPrice = calculatedPrice * (1 - _discountPercentage);
-    } else if (_bargainAmount > 0) {
-      calculatedPrice =
-          _bargainAmount; // If bargain is set, it overrides other pricing
-    }
-    return calculatedPrice;
-  }
-
-  void addItem(
-    String productId,
-    String name,
-    double price,
-    String imageUrl,
-    String link,
-  ) {
-    if (_items.containsKey(productId)) {
-      _items.update(
-        productId,
-        (existingItem) => {
-          'id': existingItem['id'],
-          'name': existingItem['name'],
-          'price': existingItem['price'],
-          'imageUrl': existingItem['imageUrl'],
-          'quantity': existingItem['quantity'] + 1,
-        },
-      );
+  /// Adds a line, merging into an existing one for the same variant rather
+  /// than creating a duplicate.
+  void add(CartLine line, {int quantity = 1}) {
+    final existing = _findByVariant(line.variantId);
+    if (existing != null) {
+      existing.quantity += quantity;
     } else {
-      _items.putIfAbsent(
-        productId,
-        () => {
-          'id': productId,
-          'name': name,
-          'price': price,
-          'imageUrl': imageUrl,
-          'quantity': 1,
-        },
-      );
+      _lines.add(CartLine(
+        variantId: line.variantId,
+        productSlug: line.productSlug,
+        name: line.name,
+        size: line.size,
+        sku: line.sku,
+        priceKes: line.priceKes,
+        imageUrl: line.imageUrl,
+        quantity: quantity,
+      ));
     }
-    _bargainAmount = 0.0;
-    _discountPercentage = 0.0;
-    _saveCartToPrefs(); // Save cart after adding item
+    _persist();
     notifyListeners();
   }
 
-  void removeItem(String productId) {
-    _items.remove(productId);
-    _bargainAmount = 0.0;
-    _discountPercentage = 0.0;
-    _saveCartToPrefs(); // Save cart after removing item
+  /// Removing at `<= 0` -- this is the `updateQuantity` the app was
+  /// previously missing (only increase/decrease-by-one existed).
+  void setQuantity(String variantId, int quantity) {
+    if (quantity <= 0) {
+      remove(variantId);
+      return;
+    }
+    final existing = _findByVariant(variantId);
+    if (existing == null) return;
+    existing.quantity = quantity;
+    _persist();
     notifyListeners();
   }
 
-  void increaseItemQuantity(String productId) {
-    if (_items.containsKey(productId)) {
-      _items.update(
-        productId,
-        (existingItem) => {
-          ...existingItem, // Keep existing properties
-          'quantity': existingItem['quantity'] + 1,
-        },
-      );
-      _bargainAmount = 0.0;
-      _discountPercentage = 0.0;
-      _saveCartToPrefs();
-      notifyListeners();
-    }
-  }
-
-  void decreaseItemQuantity(String productId) {
-    if (_items.containsKey(productId)) {
-      if (_items[productId]!['quantity'] > 1) {
-        _items.update(
-          productId,
-          (existingItem) => {
-            ...existingItem, // Keep existing properties
-            'quantity': existingItem['quantity'] - 1,
-          },
-        );
-      } else {
-        _items.remove(productId); // Remove if quantity becomes 0
-      }
-      _bargainAmount = 0.0;
-      _discountPercentage = 0.0;
-      _saveCartToPrefs();
-      notifyListeners();
-    }
-  }
-
-  void clearCart() {
-    _items.clear();
-    _bargainAmount = 0.0;
-    _discountPercentage = 0.0;
-    _saveCartToPrefs(); // Save cart after clearing
+  void remove(String variantId) {
+    _lines.removeWhere((line) => line.variantId == variantId);
+    _persist();
     notifyListeners();
   }
 
-  // New methods for persistence
-  Future<void> _saveCartToPrefs() async {
+  void clear() {
+    _lines.clear();
+    _persist();
+    notifyListeners();
+  }
+
+  Future<void> _persist() async {
+    if (!ready) return; // See the class doc: never persist before loaded.
     final prefs = await SharedPreferences.getInstance();
-    final cartData = {
-      'items': _items,
-      'customerType': _customerType.toString().split('.').last,
-      'discountPercentage': _discountPercentage,
-      'bargainAmount': _bargainAmount,
-    };
-    final String encodedMap = json.encode(cartData);
-    await prefs.setString('cartItems', encodedMap);
+    await prefs.setString(_cartPrefsKey, jsonEncode(_lines.map((line) => line.toJson()).toList()));
   }
 
-  Future<void> _loadCartFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.containsKey('cartItems')) {
-      final String? encodedMap = prefs.getString('cartItems');
-      if (encodedMap != null) {
-        final Map<String, dynamic> decodedData = json.decode(encodedMap);
-        _items.clear(); // Clear existing items before loading
-        (decodedData['items'] as Map<String, dynamic>).forEach((key, value) {
-          _items[key] = Map<String, dynamic>.from(value);
-        });
-        _customerType = CustomerType.values.firstWhere(
-          (e) =>
-              e.toString() ==
-              'CustomerType.' + (decodedData['customerType'] ?? 'client'),
-          orElse: () => CustomerType.client,
-        );
-        _discountPercentage =
-            (decodedData['discountPercentage'] ?? 0.0).toDouble();
-        _bargainAmount = (decodedData['bargainAmount'] ?? 0.0).toDouble();
-        notifyListeners();
+  Future<void> _load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encoded = prefs.getString(_cartPrefsKey);
+      if (encoded != null) {
+        final decoded = jsonDecode(encoded);
+        if (decoded is List) {
+          _lines
+            ..clear()
+            ..addAll(decoded.whereType<Map<String, dynamic>>().map(CartLine.fromJson));
+        }
       }
+    } catch (_) {
+      // Corrupt JSON (or an old, structurally incompatible 'cartItems' blob
+      // this key never reads) clears the cart rather than bricking the app
+      // on every launch.
+      _lines.clear();
+    } finally {
+      ready = true;
+      notifyListeners();
     }
   }
 }

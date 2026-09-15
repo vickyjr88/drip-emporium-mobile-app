@@ -1,16 +1,21 @@
-import 'package:drip_emporium/models/attender.dart';
-import 'package:drip_emporium/models/store.dart';
-import 'package:drip_emporium/screens/admin_dashboard_screen.dart';
-import 'package:drip_emporium/screens/all_users_screen.dart';
-import 'package:drip_emporium/services/data_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import '../providers/customer_auth_provider.dart';
+import '../services/api_client.dart';
+import '../services/customer_api.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
+import 'favorites_screen.dart';
+import 'login_screen.dart';
+import 'orders_screen.dart';
+import 'settings_screen.dart';
 
-import 'package:drip_emporium/screens/orders_screen.dart'; // New import
-import 'package:drip_emporium/screens/admin_orders_screen.dart'; // New import
-import 'package:drip_emporium/screens/favorites_screen.dart'; // New import
-
+/// Rewritten against the real backend's customer profile
+/// (GET/PATCH /customer-portal/me). The old version's admin/attendant
+/// branches (_isSuperAdmin, _isAttender, the Firestore superAdmins/attenders
+/// lookups) are gone -- those belong to the staff/admin screens being
+/// removed from this shopper-facing app entirely, not to a customer's own
+/// profile page.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -20,256 +25,215 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _mobileController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _displayNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final DataRepository _dataRepository = DataRepository();
-
-  User? get currentUser => _auth.currentUser;
-
-  bool _isSuperAdmin = false; // New state variable
-  bool _isAttender = false;
-  String? _attenderStoreName;
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
-    _checkIfSuperAdmin(); // Check admin status
-    _checkIfAttender();
-  }
-
-  Future<void> _checkIfAttender() async {
-    if (currentUser == null) {
-      setState(() {
-        _isAttender = false;
-      });
-      return;
-    }
-    try {
-      final attender = await _dataRepository.getAttenderByEmail(currentUser!.email!);
-      if (attender != null) {
-        final storeDoc = await _firestore.collection('stores').doc(attender.storeId).get();
-        if (storeDoc.exists) {
-          final store = Store.fromFirestore(storeDoc);
-          setState(() {
-            _isAttender = true;
-            _attenderStoreName = store.name;
-          });
-        }
-      } else {
-        setState(() {
-          _isAttender = false;
-        });
-      }
-    } catch (e) {
-      print('Error checking attender status: $e');
-      setState(() {
-        _isAttender = false;
-      });
-    }
-  }
-
-  Future<void> _checkIfSuperAdmin() async {
-    if (currentUser == null) {
-      setState(() {
-        _isSuperAdmin = false;
-      });
-      return;
-    }
-    try {
-      print('${currentUser!.uid}');
-      final doc =
-          await _firestore
-              .collection('superAdmins')
-              .doc(currentUser!.uid)
-              .get();
-      print(doc);
-      setState(() {
-        _isSuperAdmin = doc.exists;
-      });
-    } catch (e) {
-      print('Error checking super admin status: $e');
-      setState(() {
-        _isSuperAdmin = false;
-      });
-    }
-  }
-
-  Future<void> _loadUserProfile() async {
-    if (currentUser == null) return;
-
-    _displayNameController.text = currentUser!.displayName ?? '';
-    _emailController.text = currentUser!.email ?? '';
-
-    try {
-      final doc =
-          await _firestore.collection('users').doc(currentUser!.uid).get();
-      if (doc.exists) {
-        _mobileController.text = doc.data()?['mobileNumber'] ?? '';
-        _addressController.text = doc.data()?['address'] ?? '';
-      }
-    } catch (e) {
-      print('Error loading user profile: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Failed to load profile. Please check your internet connection.',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _saveUserProfile() async {
-    if (_formKey.currentState!.validate()) {
-      if (currentUser == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please sign in to save your profile.')),
-        );
-        return;
-      }
-
-      try {
-        await _firestore.collection('users').doc(currentUser!.uid).set({
-          'mobileNumber': _mobileController.text,
-          'address': _addressController.text,
-          'email': currentUser!.email, // Store email for reference
-          'displayName':
-              currentUser!.displayName, // Store display name for reference
-        }, SetOptions(merge: true)); // Merge to avoid overwriting other fields
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile saved successfully!')),
-        );
-      } catch (e) {
-        print('Error saving user profile: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Failed to save profile. Please check your internet connection.',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    final customer = context.read<CustomerAuthProvider>().customer;
+    if (customer != null) {
+      _firstNameController.text = customer.firstName;
+      _lastNameController.text = customer.lastName;
+      _phoneController.text = customer.phone;
     }
   }
 
   @override
   void dispose() {
-    _mobileController.dispose();
-    _addressController.dispose();
-    _displayNameController.dispose();
-    _emailController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    try {
+      final api = context.read<CustomerApi>();
+      final authProvider = context.read<CustomerAuthProvider>();
+      await api.updateMe(
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        phone: _phoneController.text.trim(),
+      );
+      await authProvider.refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile saved successfully!')));
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message), backgroundColor: AppColors.danger));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to save profile. Check your connection and try again.'), backgroundColor: AppColors.danger),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _confirmLogout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Log out?'),
+        content: const Text('You can sign back in any time.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('CANCEL')),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('LOG OUT')),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await context.read<CustomerAuthProvider>().logout();
+      if (mounted) Navigator.of(context).pop();
+    }
+  }
+
+  String _initials(String firstName, String lastName) {
+    final a = firstName.isNotEmpty ? firstName[0] : '';
+    final b = lastName.isNotEmpty ? lastName[0] : '';
+    final initials = (a + b).toUpperCase();
+    return initials.isEmpty ? '?' : initials;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await _auth.signOut();
-              Navigator.of(context).pop();
-            },
+    final auth = context.watch<CustomerAuthProvider>();
+    final customer = auth.customer;
+
+    if (!auth.isSignedIn || customer == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Account')),
+        body: Center(
+          child: ElevatedButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen())),
+            child: const Text('SIGN IN'),
           ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Account')),
+      body: ListView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        children: [
+          Row(
             children: [
-              TextFormField(
-                controller: _displayNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Display Name',
-                  border: OutlineInputBorder(),
+              CircleAvatar(
+                radius: 32,
+                backgroundColor: AppColors.royal,
+                child: Text(
+                  _initials(customer.firstName, customer.lastName),
+                  style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
                 ),
-                readOnly: true, // Make it read-only
               ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${customer.firstName} ${customer.lastName}'.trim(), style: Theme.of(context).textTheme.titleMedium),
+                    Text(customer.email, style: Theme.of(context).textTheme.bodySmall),
+                  ],
                 ),
-                readOnly: true, // Make it read-only
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _mobileController,
-                decoration: const InputDecoration(
-                  labelText: 'Mobile Number',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your mobile number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Delivery Address',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your delivery address';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24.0),
-              if (_isAttender)
-                ListTile(
-                  leading: const Icon(Icons.storefront),
-                  title: const Text('Attendant'),
-                  subtitle: Text(_attenderStoreName ?? 'No store assigned'),
-                ),
-              if (_isSuperAdmin)
-                ListTile(
-                  leading: const Icon(Icons.admin_panel_settings),
-                  title: const Text('Admin Dashboard'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AdminDashboardScreen(),
-                      ),
-                    );
-                  },
-                ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _saveUserProfile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Save Profile'),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: AppSpacing.xl),
+          Container(
+            decoration: BoxDecoration(border: Border.all(color: AppColors.line, width: AppSpacing.hairline)),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.receipt_long_outlined),
+                  title: const Text('Your Orders'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const OrdersScreen())),
+                ),
+                const Divider(height: AppSpacing.hairline),
+                ListTile(
+                  leading: const Icon(Icons.favorite_border),
+                  title: const Text('Favorites'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FavoritesScreen())),
+                ),
+                const Divider(height: AppSpacing.hairline),
+                ListTile(
+                  leading: const Icon(Icons.settings_outlined),
+                  title: const Text('Settings'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen())),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('EDIT DETAILS', style: Theme.of(context).textTheme.labelSmall?.copyWith(letterSpacing: 11 * 0.1)),
+                const SizedBox(height: AppSpacing.sm),
+                TextFormField(
+                  initialValue: customer.email,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  readOnly: true,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Row(children: [
+                  Expanded(child: TextFormField(
+                    controller: _firstNameController,
+                    decoration: const InputDecoration(labelText: 'First name'),
+                    validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
+                  )),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(child: TextFormField(
+                    controller: _lastNameController,
+                    decoration: const InputDecoration(labelText: 'Last name'),
+                    validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
+                  )),
+                ]),
+                const SizedBox(height: AppSpacing.md),
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: const InputDecoration(labelText: 'Phone'),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) => (value == null || value.trim().isEmpty) ? 'Please enter your phone number' : null,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _saving ? null : _save,
+                    child: _saving
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('SAVE PROFILE'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _confirmLogout,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.danger,
+                side: const BorderSide(color: AppColors.danger, width: AppSpacing.hairline),
+              ),
+              icon: const Icon(Icons.logout, size: 18),
+              label: const Text('LOG OUT'),
+            ),
+          ),
+        ],
       ),
     );
   }

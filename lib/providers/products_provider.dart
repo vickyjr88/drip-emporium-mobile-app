@@ -1,105 +1,100 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:drip_emporium/services/data_repository.dart';
+import '../models/product.dart';
+import '../models/shop_category.dart';
+import '../services/shop_repository.dart';
 
+/// The product grid's state, rewritten against the real API.
+///
+/// Filtering is server-side (`?category=`, `?search=`) -- there is no local
+/// "stores" concept at all, which is the root-cause fix for the bug that
+/// silently filtered the whole feed to zero: the old provider matched a
+/// `stores` field the live feed no longer emits, against a hardcoded default
+/// that was often not even a member of the set of values actually present.
+/// The real API has no such field to filter on.
 class ProductsProvider with ChangeNotifier {
-  final DataRepository _dataRepository;
-  List<Map<String, dynamic>> _products =
-      []; // This will hold the filtered products
-  List<Map<String, dynamic>> _allProducts =
-      []; // This will hold all fetched products
+  ProductsProvider(this._repository);
+
+  final ShopRepository _repository;
+
+  List<Product> _products = [];
+  List<ShopCategory> _categories = [];
   bool _isLoading = false;
-  String? _errorMessage;
-  String _searchQuery = ''; // New search query
-  String _selectedStore = 'Drip Emporium'; // Default selected store
-  Set<String> _allStores = {}; // To store unique store names
+  /// Distinguished from "no results for this filter" -- conflating the two
+  /// is exactly how the original bug went unnoticed for so long. Null means
+  /// the last fetch succeeded (whether or not it returned any products).
+  String? _error;
+  String? _selectedCategory; // null = all
+  String _search = '';
 
-  ProductsProvider(this._dataRepository) {
-    print('ProductsProvider constructor called.');
-    fetchProducts();
-  }
+  Timer? _searchDebounce;
+  // Guards against an out-of-order slow response overwriting a newer fast
+  // one, e.g. typing "sneak" then "sneaker" quickly -- the response for
+  // "sneak" must never land after and replace "sneaker"'s results.
+  int _requestId = 0;
 
-  List<Map<String, dynamic>> get products => _products;
+  List<Product> get products => _products;
+  List<ShopCategory> get categories => _categories;
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
-  String get selectedStore => _selectedStore;
-  List<String> get allStores => _allStores.toList();
+  String? get error => _error;
+  String? get selectedCategory => _selectedCategory;
+  String get search => _search;
 
-  // New method to set search query
-  void setSearchQuery(String query) {
-    _searchQuery =
-        query.toLowerCase(); // Store in lowercase for case-insensitive search
-    _filterProducts(); // Filter products based on new query
+  Future<void> load() async {
+    await Future.wait([_fetchCategories(), _fetchProducts()]);
+  }
+
+  Future<void> refresh() => _fetchProducts();
+
+  Future<void> _fetchCategories() async {
+    _categories = await _repository.fetchCategories();
     notifyListeners();
   }
 
-  // New method to set selected store
-  void setSelectedStore(String store) {
-    _selectedStore = store;
-    _filterProducts(); // Filter products based on new store
-    notifyListeners();
-  }
-
-  // Helper method to filter products
-  void _filterProducts() {
-    List<Map<String, dynamic>> filteredBySearch = [];
-
-    if (_searchQuery.isEmpty) {
-      filteredBySearch = List.from(
-        _allProducts,
-      ); // If no query, show all products
-    } else {
-      filteredBySearch =
-          _allProducts.where((product) {
-            final productName = product['name']?.toLowerCase() ?? '';
-            return productName.contains(_searchQuery);
-          }).toList();
-    }
-
-    // Further filter by selected store
-    if (_selectedStore == 'All Stores') {
-      _products = filteredBySearch;
-    } else {
-      _products =
-          filteredBySearch.where((product) {
-            final productStore = product['stores']?.toLowerCase() ?? '';
-            return productStore == _selectedStore.toLowerCase();
-          }).toList();
-    }
-  }
-
-  Future<void> fetchProducts() async {
-    print(
-      'fetchProducts() called. isLoading: $_isLoading, errorMessage: $_errorMessage',
-    );
+  Future<void> _fetchProducts() async {
+    final requestId = ++_requestId;
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
-      print('Attempting to fetch from DataRepository...');
-      _allProducts =
-          await _dataRepository.fetchProducts(); // Fetch all products
-      print('Fetched ${_allProducts.length} products from DataRepository.');
-
-      // Populate unique store names
-      _allStores.clear();
-      _allStores.add('All Stores'); // Add an option to view all stores
-      for (var product in _allProducts) {
-        final store = product['stores'];
-        if (store != null) {
-          _allStores.add(store);
-        }
-      }
-
-      _filterProducts(); // Filter them immediately
-    } catch (e) {
-      _errorMessage =
-          'Failed to load products. Please check your internet connection.';
-      print(_errorMessage);
+      final results = await _repository.fetchProducts(
+        category: _selectedCategory,
+        search: _search.isEmpty ? null : _search,
+      );
+      if (requestId != _requestId) return; // superseded by a newer request
+      _products = results;
+    } catch (_) {
+      if (requestId != _requestId) return;
+      _error = 'Could not load products. Check your connection and try again.';
     } finally {
-      _isLoading = false;
-      print('fetchProducts() finished. isLoading: $_isLoading');
-      notifyListeners();
+      if (requestId == _requestId) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
+  }
+
+  /// Debounced 350ms so fast typing sends one request per pause rather than
+  /// one per keystroke.
+  void setSearch(String query) {
+    _search = query.trim();
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), _fetchProducts);
+  }
+
+  /// A category tap should feel instant -- no debounce.
+  void setCategory(String? slug) {
+    // "all" is the explicit "everything" choice, kept distinct from a null
+    // category (no filter selected yet) so a bookmark/deep link to it is
+    // unambiguous -- mirrors the web storefront's resolveShopCategory().
+    _selectedCategory = slug == 'all' ? null : slug;
+    unawaited(_fetchProducts());
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    super.dispose();
   }
 }
