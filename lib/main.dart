@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:drip_emporium/services/data_repository.dart';
 import 'package:drip_emporium/providers/products_provider.dart';
 import 'package:drip_emporium/providers/cart_provider.dart';
-import 'package:drip_emporium/providers/favorites_provider.dart'; // New import
+import 'package:drip_emporium/providers/favorites_provider.dart';
 import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_core/firebase_core.dart'; // New import
-import 'package:firebase_auth/firebase_auth.dart'; // New import
 import 'package:drip_emporium/screens/bottom_nav_bar_screen.dart';
-import 'package:drip_emporium/providers/store_provider.dart';
-import 'package:drip_emporium/providers/attender_provider.dart';
-import 'package:drip_emporium/providers/orders_provider.dart';
 import 'package:drip_emporium/config/api_config.dart';
 import 'package:drip_emporium/services/api_client.dart';
 import 'package:drip_emporium/services/customer_api.dart';
@@ -25,13 +19,7 @@ import 'package:drip_emporium/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Initialize Firebase
 
-  final dataRepository = DataRepository();
-  await dataRepository.initDatabase();
-
-  // The new backend auth, registered alongside the existing Firebase auth
-  // for now -- additive, per the migration's step-by-step sequencing.
   // CustomerAuthProvider is constructed first so its tokenSupplier can be
   // wired into the ApiClient every later repository will share.
   late final CustomerAuthProvider customerAuth;
@@ -58,15 +46,6 @@ void main() async {
         ), // New provider
         ChangeNotifierProvider(
           create: (context) => FavoritesProvider(favoritesRepository, customerAuth),
-        ), // New provider
-        ChangeNotifierProvider(
-          create: (context) => StoreProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => AttenderProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => OrdersProvider(),
         ),
         ChangeNotifierProvider.value(value: customerAuth),
         Provider.value(value: shopRepository),
@@ -96,26 +75,6 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _initAppLinks();
-    _checkAndCreateUserDocument(); // Check if user is logged in and create/update document
-  }
-
-  Future<void> _checkAndCreateUserDocument() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final dataRepository = DataRepository();
-        await dataRepository.createOrUpdateUser(
-          uid: user.uid,
-          email: user.email ?? '',
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          
-        );
-        print('User document checked/updated for existing user: ${user.uid}');
-      }
-    } catch (e) {
-      print('Error checking/creating user document on app start: $e');
-    }
   }
 
   @override
@@ -134,8 +93,7 @@ class _MyAppState extends State<MyApp> {
         _handleDeepLink(initialLink.toString());
       }
     } on PlatformException {
-      // Handle exception
-      print('Failed to get initial link.');
+      debugPrint('Failed to get initial link.');
     }
 
     // Listen for incoming links while the app is running
@@ -144,8 +102,7 @@ class _MyAppState extends State<MyApp> {
         _handleDeepLink(uri.toString());
       },
       onError: (err) {
-        // Handle error
-        print('Error receiving deep link: $err');
+        debugPrint('Error receiving deep link: $err');
       },
     );
   }

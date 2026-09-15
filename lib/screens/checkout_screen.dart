@@ -5,6 +5,7 @@ import '../models/cart_line.dart';
 import '../providers/cart_provider.dart';
 import '../providers/customer_auth_provider.dart';
 import '../services/api_client.dart';
+import '../services/cart_lead_service.dart';
 import '../services/checkout_repository.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -38,6 +39,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _submitting = false;
   bool? _onlineAvailable;
 
+  Timer? _abandonedCartDebounce;
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +54,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _phoneController.text = auth.customer!.phone;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadConfig());
+
+    // Same debounced abandoned-cart sync the web storefront runs: a cart
+    // left sitting here with a way to reach the shopper (email or phone)
+    // is worth a follow-up lead, so re-sync it (2s after the shopper stops
+    // typing, matching web) any time that contact info changes. The
+    // backend dedupes by contact against any existing NEW ABANDONED_CART
+    // lead, so this is safe to call repeatedly.
+    _emailController.addListener(_scheduleAbandonedCartSync);
+    _phoneController.addListener(_scheduleAbandonedCartSync);
+    _firstNameController.addListener(_scheduleAbandonedCartSync);
+    _lastNameController.addListener(_scheduleAbandonedCartSync);
+    _addressController.addListener(_scheduleAbandonedCartSync);
+
+    // A signed-in customer already has contact details prefilled above --
+    // that alone should still start the same countdown, not just an edit
+    // the shopper types afterwards.
+    if (auth.customer != null) _scheduleAbandonedCartSync();
   }
 
   Future<void> _loadConfig() async {
@@ -58,8 +78,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (mounted) setState(() => _onlineAvailable = online);
   }
 
+  void _scheduleAbandonedCartSync() {
+    _abandonedCartDebounce?.cancel();
+    _abandonedCartDebounce = Timer(const Duration(seconds: 2), _syncAbandonedCart);
+  }
+
+  void _syncAbandonedCart() {
+    if (!mounted || _submitting) return;
+    final cart = context.read<CartProvider>();
+    if (cart.lines.isEmpty) return;
+
+    final phone = _phoneController.text.trim();
+    final email = _emailController.text.trim();
+    if (phone.isEmpty && email.isEmpty) return;
+
+    final name = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim();
+    unawaited(context.read<CartLeadService>().syncAbandoned(
+          lines: cart.lines,
+          customerName: name.isEmpty ? null : name,
+          customerPhone: phone.isEmpty ? null : phone,
+          customerEmail: email.isEmpty ? null : email,
+          shippingAddress: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+        ).catchError((_) {
+          // Best-effort: a shopper's checkout must never depend on this.
+        }));
+  }
+
   @override
   void dispose() {
+    _abandonedCartDebounce?.cancel();
     _firstNameController.dispose();
     _lastNameController.dispose();
     _emailController.dispose();
